@@ -12,7 +12,9 @@
     ],
     "ctaLabel": "E-Mail-Adresse bestätigen",
     "ctaUrl": "{confirmUrl}",
-    "placeholders": ["confirmUrl"]
+    "placeholders": [
+      "confirmUrl"
+    ]
   },
   {
     "key": "email.account.verifyEmail",
@@ -30,7 +32,10 @@
     ],
     "ctaLabel": null,
     "ctaUrl": null,
-    "placeholders": ["code", "validMinutes"]
+    "placeholders": [
+      "code",
+      "validMinutes"
+    ]
   },
   {
     "key": "email.onboarding.welcome",
@@ -48,7 +53,11 @@
     ],
     "ctaLabel": "App öffnen",
     "ctaUrl": "{appUrl}",
-    "placeholders": ["firstName", "loginMethod", "appUrl"]
+    "placeholders": [
+      "firstName",
+      "loginMethod",
+      "appUrl"
+    ]
   },
   {
     "key": "email.onboarding.day1Tips",
@@ -67,7 +76,10 @@
     ],
     "ctaLabel": "Jetzt ausprobieren",
     "ctaUrl": "{appUrl}",
-    "placeholders": ["firstName", "appUrl"]
+    "placeholders": [
+      "firstName",
+      "appUrl"
+    ]
   },
   {
     "key": "email.onboarding.day3SecurityCheck",
@@ -86,7 +98,10 @@
     ],
     "ctaLabel": "Sicherheitscheck starten",
     "ctaUrl": "{securityCheckUrl}",
-    "placeholders": ["firstName", "securityCheckUrl"]
+    "placeholders": [
+      "firstName",
+      "securityCheckUrl"
+    ]
   },
   {
     "key": "email.onboarding.day7Features",
@@ -104,7 +119,10 @@
     ],
     "ctaLabel": "Funktionen ansehen",
     "ctaUrl": "{appUrl}",
-    "placeholders": ["firstName", "appUrl"]
+    "placeholders": [
+      "firstName",
+      "appUrl"
+    ]
   },
   {
     "key": "email.onboarding.day14Feedback",
@@ -120,7 +138,10 @@
     ],
     "ctaLabel": "Zur Umfrage",
     "ctaUrl": "{surveyUrl}",
-    "placeholders": ["firstName", "surveyUrl"]
+    "placeholders": [
+      "firstName",
+      "surveyUrl"
+    ]
   },
   {
     "key": "email.security.newLogin",
@@ -138,7 +159,15 @@
     ],
     "ctaLabel": "Das war ich nicht",
     "ctaUrl": "{notMeUrl}",
-    "placeholders": ["firstName", "device", "deviceShort", "location", "connectionType", "dateTime", "notMeUrl"]
+    "placeholders": [
+      "firstName",
+      "device",
+      "deviceShort",
+      "location",
+      "connectionType",
+      "dateTime",
+      "notMeUrl"
+    ]
   },
   {
     "key": "email.security.mfaEnabled",
@@ -154,7 +183,13 @@
     ],
     "ctaLabel": "Das war ich nicht",
     "ctaUrl": "{notMeUrl}",
-    "placeholders": ["firstName", "factorName", "device", "dateTime", "notMeUrl"]
+    "placeholders": [
+      "firstName",
+      "factorName",
+      "device",
+      "dateTime",
+      "notMeUrl"
+    ]
   },
   {
     "key": "email.security.factorChanged",
@@ -170,7 +205,13 @@
     ],
     "ctaLabel": "Das war ich nicht",
     "ctaUrl": "{notMeUrl}",
-    "placeholders": ["firstName", "changeSummary", "device", "dateTime", "notMeUrl"]
+    "placeholders": [
+      "firstName",
+      "changeSummary",
+      "device",
+      "dateTime",
+      "notMeUrl"
+    ]
   },
   {
     "key": "email.security.emailChangeOldAddress",
@@ -186,7 +227,12 @@
     ],
     "ctaLabel": "Änderung stoppen",
     "ctaUrl": "{cancelUrl}",
-    "placeholders": ["firstName", "newEmailMasked", "effectiveDate", "cancelUrl"]
+    "placeholders": [
+      "firstName",
+      "newEmailMasked",
+      "effectiveDate",
+      "cancelUrl"
+    ]
   },
   {
     "key": "email.security.recoveryStarted",
@@ -203,7 +249,37 @@
     ],
     "ctaLabel": "Wiederherstellung stoppen",
     "ctaUrl": "{cancelUrl}",
-    "placeholders": ["firstName", "device", "location", "dateTime", "effectiveDate", "waitingHours", "cancelUrl"]
+    "placeholders": [
+      "firstName",
+      "device",
+      "location",
+      "dateTime",
+      "effectiveDate",
+      "waitingHours",
+      "cancelUrl"
+    ]
+  },
+  {
+    "key": "email.security.loginBlocked",
+    "category": "security",
+    "trigger": "auth.login_blocked (Risikowert ab 60)",
+    "subject": "Wir haben eine Anmeldung bei {appName} gestoppt",
+    "preheader": "{device} · {location}",
+    "body": [
+      "Hallo {firstName},",
+      "jemand hat versucht, sich bei deinem Konto anzumelden. Die Anmeldung wirkte ungewöhnlich, deshalb haben wir sie zu deinem Schutz gestoppt:",
+      "**Gerät:** {device}\n**Ort (ungefähr):** {location}\n**Zeitpunkt:** {dateTime}",
+      "**Das warst du?** Versuch es auf einem Gerät, das du schon benutzt hast, oder ohne VPN. Klappt es nicht, starte in der App die Kontowiederherstellung.",
+      "**Das warst du nicht?** Dann ist dein Konto weiterhin geschützt, du musst nichts tun. Diese E-Mail enthält bewusst keinen Link."
+    ],
+    "ctaLabel": null,
+    "ctaUrl": null,
+    "placeholders": [
+      "firstName",
+      "device",
+      "location",
+      "dateTime"
+    ]
   },
   {
     "key": "email.security.accountLocked",
@@ -220,7 +296,9 @@
     ],
     "ctaLabel": null,
     "ctaUrl": null,
-    "placeholders": ["firstName"]
+    "placeholders": [
+      "firstName"
+    ]
   },
   {
     "key": "email.security.apiKeyCreated",
@@ -237,7 +315,14 @@
     ],
     "ctaLabel": "Schlüssel verwalten",
     "ctaUrl": "{apiKeysUrl}",
-    "placeholders": ["firstName", "keyName", "keyLast4", "keyScopes", "expiryDate", "apiKeysUrl"]
+    "placeholders": [
+      "firstName",
+      "keyName",
+      "keyLast4",
+      "keyScopes",
+      "expiryDate",
+      "apiKeysUrl"
+    ]
   },
   {
     "key": "email.workspace.invite",
@@ -253,7 +338,15 @@
     ],
     "ctaLabel": "Einladung ansehen",
     "ctaUrl": "{inviteUrl}",
-    "placeholders": ["inviterName", "inviterEmailMasked", "workspaceName", "roleName", "roleDescription", "expiryDate", "inviteUrl"]
+    "placeholders": [
+      "inviterName",
+      "inviterEmailMasked",
+      "workspaceName",
+      "roleName",
+      "roleDescription",
+      "expiryDate",
+      "inviteUrl"
+    ]
   },
   {
     "key": "email.workspace.roleChanged",
@@ -269,6 +362,14 @@
     ],
     "ctaLabel": "Workspace öffnen",
     "ctaUrl": "{appUrl}",
-    "placeholders": ["firstName", "changedByName", "workspaceName", "oldRoleName", "roleName", "roleDescription", "appUrl"]
+    "placeholders": [
+      "firstName",
+      "changedByName",
+      "workspaceName",
+      "oldRoleName",
+      "roleName",
+      "roleDescription",
+      "appUrl"
+    ]
   }
 ]

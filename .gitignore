@@ -1,4 +1,28 @@
-node_modules/
-*.db
-*.sqlite
+# Build
+build/
+.gradle/
+.kotlin/
+*.class
+local.properties
+.idea/
+*.iml
 .DS_Store
+
+# Node / Strapi
+node_modules/
+cms/strapi/.tmp/
+cms/strapi/dist/
+cms/strapi/.strapi/
+cms/strapi/.strapi-updater.json
+cms/strapi/public/uploads/*
+!cms/strapi/public/uploads/.gitkeep
+
+# Geheimnisse
+.env
+*.keystore
+*.jks
+
+# iOS
+apps/ios/*.xcodeproj/
+apps/ios/build/
+xcuserdata/
