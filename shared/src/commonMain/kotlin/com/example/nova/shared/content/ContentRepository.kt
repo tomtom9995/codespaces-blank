@@ -30,8 +30,16 @@ class ContentRepository(
     }
 
     /** Fragt das Backend nach einer neuen Fassung (ETag). Gibt true zurück, wenn sich etwas geändert hat. */
+    @Throws(Exception::class)
     suspend fun refresh(): Boolean {
-        val fresh = runCatching { api?.content(locale, _bundle.value.version) }.getOrNull() ?: return false
+        val remote = runCatching { api?.content(locale, _bundle.value.version) }.getOrNull() ?: return false
+        // Texte, die das Backend (noch) nicht kennt, kommen aus der eingebauten Grundfassung.
+        val base = bundled(locale)
+        val fresh = remote.copy(
+            uiTexts = base.uiTexts + remote.uiTexts,
+            onboarding = remote.onboarding.ifEmpty { base.onboarding },
+            roles = remote.roles.ifEmpty { base.roles },
+        )
         _bundle.value = fresh
         store.set(cacheKey(), json.encodeToString(AppContentBundle.serializer(), fresh))
         return true

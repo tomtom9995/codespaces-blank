@@ -21,7 +21,7 @@ import java.security.spec.ECGenParameterSpec
  * Der private Schlüssel ist nicht exportierbar – gestohlene Tokens funktionieren auf keinem anderen Gerät.
  */
 class AndroidDeviceIdentity(private val context: Context) : DeviceIdentity {
-    private val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+    private val keyStore by lazy { KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) } }
 
     override val deviceName: String = Build.MODEL.let { model ->
         if (model.startsWith(Build.MANUFACTURER, ignoreCase = true)) model else "${Build.MANUFACTURER.replaceFirstChar { it.uppercase() }} $model"

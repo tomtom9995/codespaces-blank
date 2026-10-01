@@ -80,6 +80,7 @@ class NovaApi(
     // ---------- Inhalte ----------
 
     /** Gibt null zurück, wenn sich nichts geändert hat (ETag). */
+    @Throws(Exception::class)
     suspend fun content(locale: String, currentVersion: String?): AppContentBundle? {
         val response = client.request("$baseUrl/v1/content/$locale") {
             method = HttpMethod.Get
@@ -89,22 +90,28 @@ class NovaApi(
         return response.decode()
     }
 
+    @Throws(Exception::class)
     suspend fun providers(): AuthProviders = send(HttpMethod.Get, "/v1/auth/providers", auth = false)
 
     // ---------- Anmeldung ----------
 
+    @Throws(Exception::class)
     suspend fun startEmail(email: String, marketingConsent: Boolean): ChallengeResponse =
         send(HttpMethod.Post, "/v1/auth/email/start", enc(EmailStartRequest(email, marketingConsent)), auth = false)
 
+    @Throws(Exception::class)
     suspend fun verifyEmail(challengeId: String, code: String): LoginResponse =
         send<LoginResponse>(HttpMethod.Post, "/v1/auth/email/verify", enc(EmailVerifyRequest(challengeId, code, deviceInfo())), auth = false).also(::store)
 
+    @Throws(Exception::class)
     suspend fun verifyStepUp(challengeId: String, code: String): LoginResponse =
         send<LoginResponse>(HttpMethod.Post, "/v1/auth/step-up/verify", enc(StepUpVerifyRequest(challengeId, code, deviceInfo())), auth = false).also(::store)
 
+    @Throws(Exception::class)
     suspend fun loginWithIdToken(provider: String, idToken: String, firstName: String?): LoginResponse =
         send<LoginResponse>(HttpMethod.Post, "/v1/auth/$provider", enc(IdTokenLoginRequest(idToken, deviceInfo(), firstName)), auth = false).also(::store)
 
+    @Throws(Exception::class)
     suspend fun logout() {
         runCatching { send<Map<String, Boolean>>(HttpMethod.Post, "/v1/auth/logout") }
         sessions.save(null)
@@ -116,22 +123,36 @@ class NovaApi(
 
     // ---------- Konto ----------
 
+    @Throws(Exception::class)
     suspend fun me(): UserDto = send(HttpMethod.Get, "/v1/me")
+    @Throws(Exception::class)
     suspend fun updateMe(request: UpdateMeRequest): UserDto = send(HttpMethod.Patch, "/v1/me", enc(request))
+    @Throws(Exception::class)
     suspend fun setAntiPhishingPhrase(phrase: String): UserDto = send(HttpMethod.Put, "/v1/me/anti-phishing", enc(AntiPhishingRequest(phrase)))
+    @Throws(Exception::class)
     suspend fun securityStatus(): SecurityStatus = send(HttpMethod.Get, "/v1/me/security")
+    @Throws(Exception::class)
     suspend fun startPhone(phone: String, channel: String): ChallengeResponse = send(HttpMethod.Post, "/v1/me/phone/start", enc(PhoneStartRequest(phone, channel)))
+    @Throws(Exception::class)
     suspend fun verifyPhone(challengeId: String, code: String): UserDto = send(HttpMethod.Post, "/v1/me/phone/verify", enc(CodeRequest(challengeId, code)))
+    @Throws(Exception::class)
     suspend fun devices(): List<DeviceDto> = send(HttpMethod.Get, "/v1/devices")
+    @Throws(Exception::class)
     suspend fun revokeDevice(id: String) { send<Map<String, Boolean>>(HttpMethod.Delete, "/v1/devices/$id") }
+    @Throws(Exception::class)
     suspend fun revokeOtherDevices() { send<Map<String, Int>>(HttpMethod.Post, "/v1/devices/revoke-others") }
 
     // ---------- Chat ----------
 
+    @Throws(Exception::class)
     suspend fun models(): List<ModelDto> = send(HttpMethod.Get, "/v1/models")
+    @Throws(Exception::class)
     suspend fun conversations(): List<ConversationDto> = send(HttpMethod.Get, "/v1/conversations")
+    @Throws(Exception::class)
     suspend fun createConversation(model: String? = null): ConversationDto = send(HttpMethod.Post, "/v1/conversations", enc(CreateConversationRequest(model)))
+    @Throws(Exception::class)
     suspend fun conversation(id: String): ConversationDetailDto = send(HttpMethod.Get, "/v1/conversations/$id")
+    @Throws(Exception::class)
     suspend fun deleteConversation(id: String) { send<Map<String, Boolean>>(HttpMethod.Delete, "/v1/conversations/$id") }
 
     /** Antwort als Strom (Server-Sent Events). */

@@ -31,6 +31,9 @@ class NovaApp(
     val auth = AuthController(api, store)
     val chat = ChatController(api, scope) { content.text("chat.newChat") }
 
+    /** Für Swift (Standardwerte von Kotlin-Parametern sind dort nicht sichtbar). */
+    constructor(baseUrl: String, device: DeviceIdentity, store: KeyValueStore) : this(baseUrl, device, store, "de", MainScope())
+
     /** Beim Start: Texte aktualisieren und gespeicherte Sitzung prüfen. */
     fun start() {
         scope.launch { content.refresh() }

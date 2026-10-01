@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.roborazzi)
 }
 
 // Backend-Adresse: Emulator erreicht den Rechner unter 10.0.2.2. Für echte Geräte: -PnovaBackendUrl=https://…
@@ -36,6 +37,18 @@ android {
         compose = true
         buildConfig = true
     }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            all {
+                it.maxHeapSize = "2g"
+                // UI-Tests gegen ein laufendes Backend + Mailpit (siehe ScreensTest); ohne Variable werden sie übersprungen.
+                it.environment("NOVA_BACKEND_URL", System.getenv("NOVA_BACKEND_URL") ?: "")
+                it.environment("MAILPIT_URL", System.getenv("MAILPIT_URL") ?: "http://localhost:8025")
+                it.systemProperty("robolectric.graphicsMode", "NATIVE")
+            }
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -60,4 +73,17 @@ dependencies {
     implementation(libs.credentials.play)
     implementation(libs.googleid)
     implementation(libs.markdown.m3)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.compose)
+    testImplementation(libs.roborazzi.junit)
+    testImplementation(platform(libs.compose.bom))
+    testImplementation(libs.compose.ui.test.junit4)
+    debugImplementation(libs.compose.ui.test.manifest)
+}
+
+roborazzi {
+    outputDir.set(rootProject.layout.projectDirectory.dir("docs/screenshots/android"))
 }

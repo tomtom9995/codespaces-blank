@@ -1,0 +1,11 @@
+**/node_modules
+**/build
+**/.gradle
+**/.kotlin
+**/.tmp
+**/dist
+**/.env
+apps
+shared
+docs
+.git

@@ -40,6 +40,7 @@ class AuthController(private val api: NovaApi, private val store: KeyValueStore)
     }
 
     /** Beim App-Start: vorhandene Sitzung prüfen (erneuert Tokens bei Bedarf automatisch). */
+    @Throws(Exception::class)
     suspend fun restore() {
         if (!api.isLoggedIn) {
             _state.value = SessionState.LoggedOut
@@ -56,14 +57,19 @@ class AuthController(private val api: NovaApi, private val store: KeyValueStore)
         }
     }
 
+    @Throws(Exception::class)
     suspend fun startEmail(email: String, marketingConsent: Boolean): ChallengeResponse = api.startEmail(email, marketingConsent)
 
+    @Throws(Exception::class)
     suspend fun verifyEmail(challengeId: String, code: String): LoginResult = attempt { api.verifyEmail(challengeId, code) }
 
+    @Throws(Exception::class)
     suspend fun verifyStepUp(challengeId: String, code: String): LoginResult = attempt { api.verifyStepUp(challengeId, code) }
 
+    @Throws(Exception::class)
     suspend fun loginWithGoogle(idToken: String): LoginResult = attempt { api.loginWithIdToken("google", idToken, null) }
 
+    @Throws(Exception::class)
     suspend fun loginWithApple(idToken: String, firstName: String?): LoginResult = attempt { api.loginWithIdToken("apple", idToken, firstName) }
 
     /** Profil nach Änderungen (Name, Telefon, …) aktualisieren. */
@@ -74,6 +80,7 @@ class AuthController(private val api: NovaApi, private val store: KeyValueStore)
 
     private fun cache(user: UserDto?) = store.set(USER_KEY, user?.let { json.encodeToString(UserDto.serializer(), it) })
 
+    @Throws(Exception::class)
     suspend fun logout() {
         api.logout()
         cache(null)
