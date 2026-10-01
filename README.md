@@ -1,0 +1,100 @@
+# Nova – native KI-Assistenz-App (iOS & Android)
+
+Erstes lauffähiges Produkt nach dem Plan in [`docs/plan/`](docs/plan/README.md). Arbeitstitel „Nova“ und Domain `example.com` sind Platzhalter (änderbar in `cms/content/de/settings.json` bzw. im CMS).
+
+| Teil | Technik | Ordner | Stand |
+|---|---|---|---|
+| Backend-API | Kotlin, Ktor, PostgreSQL | `backend/` | ✅ läuft, 10 Integrationstests |
+| CMS für alle Texte | Strapi 5 | `cms/strapi/`, Texte in `cms/content/de/` | ✅ läuft, importiert Texte automatisch |
+| Gemeinsame App-Logik | Kotlin Multiplatform | `shared/` | ✅ End-to-End-Test gegen das Backend |
+| Android-App | Jetpack Compose | `apps/android/` | ✅ APK baut, Klick-Durchlauf mit Screenshots |
+| iOS-App | SwiftUI | `apps/ios/` | ⚠️ geschrieben, Build nur auf macOS (CI-Job vorhanden) |
+| CI/CD | GitHub Actions, Cloud Run | `.github/workflows/` | ✅ angelegt |
+
+## Was schon funktioniert
+
+- **Anmeldung ohne Passwort:** Code per E-Mail, „Mit Google/Apple anmelden“ (sobald OAuth-Client-IDs eingetragen sind)
+- **Geräteschlüssel:** Jedes Gerät erzeugt einen Schlüssel im Sicherheitschip (Android Keystore / Secure Enclave). Sitzungen lassen sich nur mit diesem Schlüssel verlängern, gestohlene Tokens sind auf anderen Geräten wertlos.
+- **Risikoprüfung bei jeder Anmeldung:** neues Gerät, neues Land, unmögliche Reise, VPN, Fehlversuche → durchlassen, Zusatzbestätigung per SMS oder blockieren
+- **Handynummer per SMS oder Anruf** bestätigen; SMS-Texte im GSM-7-Zeichensatz, ohne Links, mit Autofill-Zeile
+- **Sicherheits-E-Mails** (neue Anmeldung, Faktor geändert, Konto gesperrt …) mit „Das war ich nicht“-Link, der nur sperren kann, und persönlichem Anti-Phishing-Code
+- **Links aus dem CMS** werden vor dem Versand gegen erlaubte Domains geprüft
+- **Onboarding-E-Mail-Strecke** (Tag 1, 3, 7, 14) mit Bedingungen und Abmeldelink
+- **Chat mit Live-Antwort** (Streaming), Verlauf, Abbrechen, Löschen
+- **Geräteliste**, „Alle anderen Geräte abmelden“, letzte Sicherheitsaktivität
+- **Rollen:** jedes Konto hat einen Workspace mit Rolle Inhaber:in (Admin, Mitglied, Gast vorbereitet)
+- **Alle Texte aus dem CMS:** Änderung in Strapi → sofort in der App, ohne Update; offline gilt die eingebaute Fassung
+
+## Screenshots (Android, automatisch erzeugt)
+
+| | | |
+|---|---|---|
+| ![](docs/screenshots/android/01-willkommen.png) | ![](docs/screenshots/android/04-email-code.png) | ![](docs/screenshots/android/05-telefon.png) |
+| ![](docs/screenshots/android/09-chat-start.png) | ![](docs/screenshots/android/10-chat-antwort.png) | ![](docs/screenshots/android/12-einstellungen.png) |
+
+**CMS und E-Mails**
+
+| Strapi: alle Vorlagen bearbeitbar | Code-E-Mail mit Warnhinweis | Sicherheits-E-Mail |
+|---|---|---|
+| ![](docs/screenshots/web/strapi-email-vorlagen.png) | ![](docs/screenshots/web/email-code.png) | ![](docs/screenshots/web/email-sicherheit.png) |
+
+## Lokal starten
+
+Voraussetzung: Docker Desktop.
+
+```bash
+cp .env.example .env          # optional: ANTHROPIC_API_KEY eintragen für echte KI-Antworten
+docker compose up -d --build
+```
+
+| Adresse | Was |
+|---|---|
+| http://localhost:8080/health | Backend |
+| http://localhost:1337/admin | Strapi – Anmeldung `admin@example.com` / `NovaAdmin2026!` (lokal) |
+| http://localhost:8025 | Mailpit – alle E-Mails, **SMS und Anrufe** der Entwicklung landen hier |
+
+Ohne KI-Schlüssel antwortet ein **Testmodus**. Mit `ANTHROPIC_API_KEY` antwortet Claude (`claude-opus-5-5`), mit `OPENAI_BASE_URL` ein OpenAI-kompatibles Gateway wie LiteLLM (z. B. für Gemini über Vertex AI).
+
+### Android-App
+
+Android Studio öffnen → Projektordner (Wurzel) → App `apps:android` auf einem Emulator starten. Der Emulator erreicht das lokale Backend unter `10.0.2.2:8080` (voreingestellt).
+
+```bash
+./gradlew :apps:android:installDebug                          # auf verbundenes Gerät/Emulator
+./gradlew :apps:android:assembleRelease -PnovaBackendUrl=https://api.example.com
+```
+
+Den Anmeldecode findest du in Mailpit (http://localhost:8025), ebenso die „SMS“.
+
+### iOS-App (Mac mit Xcode 16+)
+
+```bash
+brew install xcodegen
+cd apps/ios && xcodegen generate && open Nova.xcodeproj
+```
+
+Im Simulator starten; das Backend ist unter `localhost:8080` erreichbar. Beim ersten Build baut Xcode automatisch das Kotlin-Framework (`./gradlew :shared:embedAndSignAppleFrameworkForXcode`).
+
+## Tests
+
+```bash
+docker compose up -d postgres mailpit                         # Datenbank + Mailpit
+(cd backend && ./gradlew test)                                # Backend-Integrationstests
+NOVA_BACKEND_URL=http://localhost:8080 ./gradlew :shared:jvmTest              # App-Logik gegen laufendes Backend
+NOVA_BACKEND_URL=http://localhost:8080 ./gradlew :apps:android:recordRoborazziDebug   # Klick-Durchlauf + Screenshots
+node cms/scripts/validate-content.mjs                         # Texte prüfen
+```
+
+## Texte ändern
+
+- **Im CMS** (Strapi): sofort wirksam für Apps und E-Mails. Rollen „Redaktion“ und „Sicherheitsfreigabe“ sind angelegt.
+- **Startfassung** in `cms/content/de/*.json`: wird beim ersten Start in Strapi importiert und in die Apps eingebaut.
+
+## Was noch fehlt (nächste Schritte)
+
+1. **Passkeys** (WebAuthn) – Texte und Plan stehen, Server und App-Anbindung fehlen noch
+2. **Google-/Apple-Login** produktiv: OAuth-Client-IDs anlegen, Domain-Verknüpfung (`assetlinks.json`, `apple-app-site-association`)
+3. **Push-Benachrichtigungen** (Firebase Cloud Messaging) – Texte vorhanden
+4. **Twilio** für echte SMS/Anrufe (`PHONE_PROVIDER=twilio` + Zugangsdaten), **E-Mail-Anbieter** (SMTP von Brevo/Mailjet)
+5. **Google Cloud**: Projekte, Terraform, Variablen für `deploy.yml` (siehe [docs/plan/cicd-gcp.md](docs/plan/cicd-gcp.md))
+6. Datei-Uploads, Workspaces mit Einladungen, Abos (In-App-Kauf)

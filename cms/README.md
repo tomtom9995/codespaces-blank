@@ -23,8 +23,12 @@ node cms/scripts/validate-content.mjs
 
 Läuft automatisch in der CI-Pipeline (`.github/workflows/content.yml`).
 
-## Nächste Schritte
+## Strapi
 
-1. Strapi-5-Projekt in `cms/` anlegen, Inhaltstypen nach `docs/plan/cms.md` als Code
-2. Import-Skript: lädt diese Dateien einmalig in Strapi
-3. Export-Pipeline: veröffentlichte Texte zurück nach Git (Pull Request)
+Das CMS liegt in `strapi/`. Beim Start (`docker compose up`) werden automatisch:
+- die Sprache Deutsch angelegt und alle Dateien aus `content/de/` importiert (nur wenn noch leer),
+- die Admin-Rollen „Redaktion“ und „Sicherheitsfreigabe“ angelegt,
+- lokal ein Admin-Konto angelegt (`STRAPI_ADMIN_EMAIL` / `STRAPI_ADMIN_PASSWORD`),
+- das Backend bei jeder Änderung benachrichtigt (Cache leeren → Text sofort in der App).
+
+Lokal ohne Docker: `cd strapi && npm install && npm run develop` (Datenbank-Variablen siehe `strapi/.env.example`).
