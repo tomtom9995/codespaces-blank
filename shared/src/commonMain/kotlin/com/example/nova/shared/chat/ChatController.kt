@@ -41,7 +41,7 @@ class ChatController(private val api: NovaApi, private val scope: CoroutineScope
         }
     }
 
-    fun newChat() {
+    fun startNewChat() {
         stop()
         _state.value = ChatState(title = newChatTitle())
     }
@@ -66,7 +66,7 @@ class ChatController(private val api: NovaApi, private val scope: CoroutineScope
     fun delete(conversationId: String) {
         scope.launch {
             runCatching { api.deleteConversation(conversationId) }
-            if (_state.value.conversationId == conversationId) newChat()
+            if (_state.value.conversationId == conversationId) startNewChat()
             refreshConversations()
         }
     }

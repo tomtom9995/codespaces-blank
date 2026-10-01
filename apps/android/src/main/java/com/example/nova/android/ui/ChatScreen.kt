@@ -109,7 +109,7 @@ fun ChatScreen(nova: NovaApp, user: UserDto, onOpenSettings: () -> Unit) {
                     label = { Text(t("chat.newChat")) },
                     icon = { Icon(Icons.Filled.Add, null) },
                     selected = false,
-                    onClick = { chat.newChat(); scope.launch { drawer.close() } },
+                    onClick = { chat.startNewChat(); scope.launch { drawer.close() } },
                     modifier = Modifier.padding(horizontal = 12.dp),
                 )
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
@@ -146,7 +146,7 @@ fun ChatScreen(nova: NovaApp, user: UserDto, onOpenSettings: () -> Unit) {
                 TopAppBar(
                     title = { Text(state.title.ifBlank { t.appName }, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     navigationIcon = { IconButton(onClick = { scope.launch { drawer.open() } }) { Icon(Icons.Filled.Menu, t("chat.menu")) } },
-                    actions = { IconButton(onClick = { chat.newChat() }) { Icon(Icons.Filled.Add, t("chat.newChat")) } },
+                    actions = { IconButton(onClick = { chat.startNewChat() }) { Icon(Icons.Filled.Add, t("chat.newChat")) } },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                 )
             },

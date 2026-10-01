@@ -98,7 +98,7 @@ jobs:
         working-directory: apps/ios
         run: |
           xcodebuild -project Nova.xcodeproj -scheme Nova -configuration Debug \
-            -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+            -destination 'generic/platform=iOS Simulator' ARCHS=arm64 ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO build
 
   cms:
     name: Strapi – Build

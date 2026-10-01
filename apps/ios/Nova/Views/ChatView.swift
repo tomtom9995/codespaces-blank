@@ -21,25 +21,36 @@ struct ChatView: View {
                 inputBar
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle(state.title.isEmpty ? model.bundle.appName : state.title)
+            .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button { showHistory = true } label: { Image(systemName: "line.3.horizontal") }
-                        .accessibilityLabel(model.t("chat.menu"))
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { model.nova.chat.newChat() } label: { Image(systemName: "square.and.pencil") }
-                        .accessibilityLabel(model.t("chat.newChat"))
-                }
-            }
+            .toolbar { toolbarContent }
             .sheet(isPresented: $showHistory) { historySheet }
             .sheet(isPresented: $showSettings) { SettingsView(user: user) }
-            .alert(state.error ?? "", isPresented: Binding(get: { state.error != nil }, set: { if !$0 { model.nova.chat.dismissError() } })) {
+            .alert(state.error ?? "", isPresented: errorShown) {
                 Button("OK", role: .cancel) {}
             }
             .task { model.nova.chat.refreshConversations() }
         }
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button { showHistory = true } label: { Image(systemName: "line.3.horizontal") }
+                .accessibilityLabel(model.t("chat.menu"))
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            Button { model.nova.chat.startNewChat() } label: { Image(systemName: "square.and.pencil") }
+                .accessibilityLabel(model.t("chat.newChat"))
+        }
+    }
+
+    private var errorShown: Binding<Bool> {
+        Binding(get: { model.chat.error != nil }, set: { if !$0 { model.nova.chat.dismissError() } })
+    }
+
+    private var title: String {
+        state.title.isEmpty ? model.bundle.appName : state.title
     }
 
     private var emptyState: some View {
@@ -105,7 +116,7 @@ struct ChatView: View {
     private var historySheet: some View {
         NavigationStack {
             List {
-                Button { model.nova.chat.newChat(); showHistory = false } label: { Label(model.t("chat.newChat"), systemImage: "plus") }
+                Button { model.nova.chat.startNewChat(); showHistory = false } label: { Label(model.t("chat.newChat"), systemImage: "plus") }
                 Section(model.t("chat.conversations")) {
                     if model.conversations.isEmpty { Text(model.t("chat.empty")).foregroundStyle(.secondary) }
                     ForEach(model.conversations, id: \.id) { c in
