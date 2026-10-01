@@ -2,8 +2,14 @@
   "appName": "Nova",
   "domain": "app.example.com",
   "supportEmail": "support@example.com",
-  "allowedLinkDomains": ["example.com"],
-  "globalPlaceholders": ["appName", "domain", "supportEmail"],
+  "allowedLinkDomains": [
+    "example.com"
+  ],
+  "globalPlaceholders": [
+    "appName",
+    "domain",
+    "supportEmail"
+  ],
   "fallbacks": {
     "firstName": "",
     "greeting": "Hallo,",
@@ -55,6 +61,8 @@
     "apiKeysUrl": "https://app.example.com/settings/api-keys",
     "surveyUrl": "https://app.example.com/feedback",
     "unsubscribeUrl": "https://app.example.com/email/unsubscribe?t=TOKEN",
-    "antiPhishingPhrase": "Blaue Giraffe"
+    "antiPhishingPhrase": "Blaue Giraffe",
+    "version": "0.1.0 (1)",
+    "date": "1. Oktober 2026, 21:45 Uhr"
   }
 }
