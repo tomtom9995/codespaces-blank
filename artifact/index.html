@@ -1,0 +1,299 @@
+<title>Hallo-Welt-Datenbank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+/* Layout: eine Spalte – Eintrag anlegen, SQL-Ergebnis als Liste, SQL-Konsole */
+:root {
+  --bg: #f2f4f7;
+  --surface: #ffffff;
+  --fg: #16202b;
+  --muted: #5a6777;
+  --line: #d8dee6;
+  --accent: #1f5fbf;
+  --accent-fg: #ffffff;
+  --ok: #1d7a4a;
+  --warn: #9a5a00;
+  --err: #b3261e;
+  --code-bg: #e9edf3;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141a; --surface: #171e27; --fg: #e5eaf0; --muted: #93a0b0; --line: #2a3440;
+    --accent: #6fa3ff; --accent-fg: #0b1220; --ok: #5cc58c; --warn: #e3a54a; --err: #ff8a80; --code-bg: #1e2732;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141a; --surface: #171e27; --fg: #e5eaf0; --muted: #93a0b0; --line: #2a3440;
+  --accent: #6fa3ff; --accent-fg: #0b1220; --ok: #5cc58c; --warn: #e3a54a; --err: #ff8a80; --code-bg: #1e2732;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 16px; line-height: 1.5;
+  padding: 0 16px;
+}
+main { max-width: 640px; margin: 0 auto; padding-block: 28px 48px; display: flex; flex-direction: column; gap: 28px; }
+header { display: flex; flex-direction: column; gap: 6px; }
+h1 { font-size: 1.75rem; line-height: 1.2; margin: 0; text-wrap: balance; font-weight: 600; }
+h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0; font-weight: 600; }
+p { margin: 0; }
+.lede { color: var(--muted); max-width: 60ch; }
+code, .mono { font-family: var(--mono); font-size: 0.875em; }
+.status { display: inline-flex; align-items: center; gap: 8px; font-size: 0.875rem; color: var(--muted); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warn); flex: none; }
+.status[data-kind="ok"] .dot { background: var(--ok); }
+.status[data-kind="err"] .dot { background: var(--err); }
+section { display: flex; flex-direction: column; gap: 12px; }
+.row-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+form.add { display: flex; gap: 8px; flex-wrap: wrap; }
+input[type="text"], textarea {
+  flex: 1 1 220px; min-width: 0; font: inherit; color: var(--fg); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px;
+}
+textarea { font-family: var(--mono); font-size: 0.875rem; width: 100%; min-height: 84px; resize: vertical; }
+input:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button {
+  font: inherit; font-weight: 600; border-radius: 6px; padding: 10px 16px; cursor: pointer;
+  background: var(--accent); color: var(--accent-fg); border: 1px solid var(--accent);
+}
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button.ghost { background: transparent; color: var(--muted); border-color: var(--line); font-weight: 400; padding: 4px 10px; font-size: 0.8rem; }
+button.ghost.confirm { color: var(--err); border-color: var(--err); }
+.msg { font-size: 0.875rem; min-height: 1.3em; }
+.msg.err { color: var(--err); }
+.sql-line { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); background: var(--code-bg); padding: 8px 10px; border-radius: 6px; overflow-x: auto; white-space: pre; }
+ul.list { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+ul.list li { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-top: 1px solid var(--line); }
+ul.list li:first-child { border-top: 0; }
+.li-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.li-text { overflow-wrap: anywhere; }
+.li-meta { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.empty { color: var(--muted); padding: 16px; background: var(--surface); border: 1px dashed var(--line); border-radius: 8px; }
+.result { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-family: var(--mono); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { color: var(--muted); font-weight: 500; }
+tr:last-child td { border-bottom: 0; }
+.console-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.hint { font-size: 0.8rem; color: var(--muted); }
+@media (prefers-reduced-motion: no-preference) { button { transition: opacity .15s; } }
+</style>
+
+<main>
+  <header>
+    <h1>Hallo Welt mit SQLite</h1>
+    <p class="lede">Die Einträge liegen dauerhaft in der Datenbank dieser Seite. Beim Öffnen lädt der Browser sie in SQLite und zeigt das Ergebnis einer echten SQL-Abfrage an.</p>
+    <div class="status" id="status" data-kind="wait"><span class="dot"></span><span id="status-text">Verbinde mit der Datenbank …</span></div>
+  </header>
+
+  <section aria-labelledby="h-add">
+    <h2 id="h-add">Neuer Eintrag</h2>
+    <form class="add" id="add-form">
+      <input type="text" id="add-input" maxlength="280" placeholder="z.B. Hallo vom Handy!" autocomplete="off" aria-label="Nachricht">
+      <button type="submit" id="add-btn" disabled>Speichern</button>
+    </form>
+    <p class="msg" id="add-msg" aria-live="polite"></p>
+  </section>
+
+  <section aria-labelledby="h-list">
+    <div class="row-head">
+      <h2 id="h-list">Tabelle messages</h2>
+      <span class="hint" id="count"></span>
+    </div>
+    <div class="sql-line" id="list-sql"></div>
+    <p class="empty" id="empty">Noch keine Einträge. Schreib oben die erste Nachricht und tippe auf „Speichern“.</p>
+    <ul class="list" id="list" hidden></ul>
+  </section>
+
+  <section aria-labelledby="h-console">
+    <h2 id="h-console">SQL-Konsole</h2>
+    <textarea id="sql-input" spellcheck="false" aria-label="SQL-Abfrage">SELECT COUNT(*) AS anzahl, MIN(created_at) AS erster FROM messages;</textarea>
+    <div class="console-actions">
+      <button type="button" id="sql-run" disabled>Abfrage ausführen</button>
+      <span class="hint">Nur Lese-Abfragen (SELECT, WITH, PRAGMA). Neue Einträge über das Formular.</span>
+    </div>
+    <p class="msg" id="sql-msg" aria-live="polite"></p>
+    <div class="result" id="sql-result" hidden></div>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-asm.js"></script>
+<script>
+(function () {
+  const $ = (s) => document.querySelector(s);
+  const SCHEMA = "CREATE TABLE messages (id TEXT PRIMARY KEY, message TEXT NOT NULL, created_at TEXT NOT NULL)";
+  const LIST_QUERY = "SELECT id, message, created_at FROM messages ORDER BY created_at DESC";
+  $("#list-sql").textContent = LIST_QUERY + ";";
+
+  let SQL = null, sdb = null, store = null, rows = [], snapshotSeen = false;
+
+  function setStatus(kind, text) {
+    $("#status").dataset.kind = kind;
+    $("#status-text").textContent = text;
+  }
+
+  function fmt(ts) {
+    const d = new Date(ts);
+    return isNaN(d) ? ts : d.toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
+  }
+
+  function rebuild() {
+    if (!SQL) return;
+    if (sdb) sdb.close();
+    sdb = new SQL.Database();
+    sdb.run(SCHEMA);
+    const stmt = sdb.prepare("INSERT OR REPLACE INTO messages VALUES (?, ?, ?)");
+    for (const r of rows) stmt.run([r.id, r.message, r.created_at]);
+    stmt.free();
+    renderList();
+    $("#sql-run").disabled = false;
+  }
+
+  let armedDelete = null;
+  function renderList() {
+    const res = sdb.exec(LIST_QUERY);
+    const values = res.length ? res[0].values : [];
+    const list = $("#list");
+    list.replaceChildren();
+    $("#count").textContent = values.length + (values.length === 1 ? " Zeile" : " Zeilen");
+    $("#empty").hidden = values.length > 0;
+    list.hidden = values.length === 0;
+    for (const [id, message, created] of values) {
+      const li = document.createElement("li");
+      const body = document.createElement("div");
+      body.className = "li-body";
+      const t = document.createElement("span");
+      t.className = "li-text";
+      t.textContent = message;
+      const m = document.createElement("span");
+      m.className = "li-meta";
+      m.textContent = fmt(created);
+      body.append(t, m);
+      li.append(body);
+      if (store) {
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "ghost";
+        del.textContent = "Löschen";
+        del.addEventListener("click", () => onDelete(id, del));
+        li.append(del);
+      }
+      list.append(li);
+    }
+  }
+
+  async function onDelete(id, btn) {
+    if (armedDelete !== id) {
+      armedDelete = id;
+      document.querySelectorAll("button.ghost.confirm").forEach((b) => { b.classList.remove("confirm"); b.textContent = "Löschen"; });
+      btn.classList.add("confirm");
+      btn.textContent = "Wirklich?";
+      return;
+    }
+    armedDelete = null;
+    btn.disabled = true;
+    try {
+      await store.doc("messages/" + id).delete();
+    } catch (e) {
+      btn.disabled = false;
+      $("#add-msg").className = "msg err";
+      $("#add-msg").textContent = "Löschen fehlgeschlagen: " + (e && e.message ? e.message : "unbekannter Fehler");
+    }
+  }
+
+  $("#add-form").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const input = $("#add-input");
+    const text = input.value.trim();
+    const msg = $("#add-msg");
+    if (!text || !store) return;
+    $("#add-btn").disabled = true;
+    msg.className = "msg";
+    msg.textContent = "Speichere …";
+    try {
+      await store.collection("messages").add({ message: text, created_at: new Date().toISOString() });
+      input.value = "";
+      msg.textContent = "Gespeichert.";
+    } catch (e) {
+      msg.className = "msg err";
+      msg.textContent = e && e.code === "invalid_argument"
+        ? "Du hast für diese Seite nur Leserechte."
+        : "Speichern fehlgeschlagen: " + (e && e.message ? e.message : "unbekannter Fehler");
+    } finally {
+      $("#add-btn").disabled = false;
+    }
+  });
+
+  $("#sql-run").addEventListener("click", () => {
+    const q = $("#sql-input").value;
+    const msg = $("#sql-msg");
+    const out = $("#sql-result");
+    out.hidden = true;
+    out.replaceChildren();
+    msg.className = "msg";
+    if (!/^\s*(select|with|pragma)\b/i.test(q)) {
+      msg.className = "msg err";
+      msg.textContent = "Nur Lese-Abfragen sind erlaubt. Neue Einträge legst du über das Formular oben an.";
+      return;
+    }
+    const tmp = new SQL.Database(sdb.export());
+    try {
+      const res = tmp.exec(q);
+      if (!res.length) { msg.textContent = "Abfrage ausgeführt, keine Zeilen."; return; }
+      const r = res[res.length - 1];
+      const table = document.createElement("table");
+      const thead = table.createTHead().insertRow();
+      for (const c of r.columns) { const th = document.createElement("th"); th.textContent = c; thead.append(th); }
+      const tb = table.createTBody();
+      for (const row of r.values) {
+        const tr = tb.insertRow();
+        for (const v of row) tr.insertCell().textContent = v === null ? "NULL" : String(v);
+      }
+      out.append(table);
+      out.hidden = false;
+      msg.textContent = r.values.length + (r.values.length === 1 ? " Zeile" : " Zeilen");
+    } catch (e) {
+      msg.className = "msg err";
+      msg.textContent = "SQL-Fehler: " + e.message;
+    } finally {
+      tmp.close();
+    }
+  });
+
+  async function start() {
+    try {
+      SQL = await initSqlJs();
+    } catch (e) {
+      setStatus("err", "SQLite konnte nicht geladen werden. Lade die Seite neu.");
+      return;
+    }
+    rebuild();
+
+    store = window.claude ? await window.claude.use("db") : null;
+    if (!store) {
+      setStatus("err", "Keine Datenbank verfügbar. Melde dich bei claude.ai an und öffne die Seite erneut.");
+      return;
+    }
+    store.collection("messages").orderBy("created_at", "desc").limit(500).onSnapshot((snap) => {
+      rows = snap.docs.map((d) => {
+        const b = d.data() || {};
+        return typeof b.message === "string" && typeof b.created_at === "string"
+          ? { id: d.id, message: b.message.slice(0, 280), created_at: b.created_at }
+          : null;
+      }).filter(Boolean);
+      snapshotSeen = true;
+      $("#add-btn").disabled = false;
+      setStatus("ok", "Verbunden · SQLite " + (sdb ? sdb.exec("SELECT sqlite_version()")[0].values[0][0] : ""));
+      rebuild();
+    }, (e) => {
+      setStatus("err", "Verbindung verloren (" + e.code + "). Lade die Seite neu.");
+      $("#add-btn").disabled = true;
+    });
+  }
+  start();
+})();
+</script>
