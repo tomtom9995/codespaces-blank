@@ -1,0 +1,39 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: #f5f5f7;
+  color: #1d1d1f;
+  -webkit-font-smoothing: antialiased;
+}
+.nav {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; justify-content: center; gap: 2.2rem;
+  padding: .8rem 1rem; font-size: .8rem;
+  background: rgba(22,22,23,.8); color: #e8e8ed;
+  backdrop-filter: saturate(180%) blur(20px);
+  flex-wrap: wrap;
+}
+.logo { font-size: 1rem; }
+.hero { text-align: center; padding: 6rem 1rem 4rem; background: #fff; }
+.eyebrow { color: #bf4800; font-weight: 600; margin: 0 0 .5rem; }
+.hero h1 {
+  font-size: clamp(2.5rem, 7vw, 5rem); font-weight: 700; letter-spacing: -.02em; margin: 0;
+  background: linear-gradient(90deg, #0071e3, #a24bff, #ff2d55);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.sub { font-size: 1.4rem; color: #6e6e73; max-width: 40rem; margin: 1rem auto 2rem; }
+.ctas { display: flex; gap: 2rem; justify-content: center; }
+.ctas a { color: #0066cc; text-decoration: none; font-size: 1.15rem; }
+.ctas a:hover { text-decoration: underline; }
+main { display: grid; gap: 12px; padding: 12px; }
+.tile { background: #fff; text-align: center; padding: 4rem 1.5rem; border-radius: 18px; }
+.tile.dark { background: #000; color: #f5f5f7; }
+.tile h2 { font-size: clamp(2rem, 5vw, 3.5rem); margin: 0 0 .5rem; letter-spacing: -.01em; }
+.tagline { font-size: 1.5rem; margin: 0 0 1rem; }
+.detail { color: #86868b; max-width: 36rem; margin: 0 auto 1.5rem; }
+.price { font-weight: 600; }
+.confidence { font-size: .8rem; color: #bf4800; }
+.loading, .error { text-align: center; padding: 3rem; color: #86868b; }
+.error { color: #d70015; }
+footer { text-align: center; font-size: .75rem; color: #86868b; padding: 2rem 1rem 3rem; }
