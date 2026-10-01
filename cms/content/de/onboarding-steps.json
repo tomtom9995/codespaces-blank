@@ -1,0 +1,110 @@
+[
+  {
+    "key": "onboarding.welcome",
+    "order": 1,
+    "title": "Dein KI-Assistent für jeden Tag",
+    "body": "Schreiben, recherchieren, lernen, planen: Frag {appName} einfach.",
+    "primaryCta": "Los geht's",
+    "secondaryCta": "Ich habe schon ein Konto",
+    "tertiaryCta": null,
+    "skippable": false,
+    "condition": "immer",
+    "placeholders": []
+  },
+  {
+    "key": "onboarding.signIn",
+    "order": 2,
+    "title": "Wie möchtest du dich anmelden?",
+    "body": "Du brauchst kein Passwort. Melde dich über Google, Apple oder mit einem Code per E-Mail an.",
+    "primaryCta": null,
+    "secondaryCta": null,
+    "tertiaryCta": null,
+    "skippable": false,
+    "condition": "immer; Buttons aus ui-texts auth.*",
+    "placeholders": []
+  },
+  {
+    "key": "onboarding.verifyEmail",
+    "order": 3,
+    "title": "Schau in dein Postfach",
+    "body": "Wir haben dir einen 6-stelligen Code an {email} geschickt. Gib ihn hier ein.",
+    "primaryCta": "Bestätigen",
+    "secondaryCta": "Neuen Code anfordern",
+    "tertiaryCta": "Andere E-Mail-Adresse verwenden",
+    "skippable": false,
+    "condition": "nur bei Anmeldung per E-Mail",
+    "placeholders": ["email"]
+  },
+  {
+    "key": "onboarding.passkey",
+    "order": 4,
+    "title": "Anmelden mit {biometricName}",
+    "body": "Mit einem Passkey meldest du dich künftig per {biometricName} an, ohne Passwort und ohne Code. Ein Passkey funktioniert nur in der echten {appName}-App und schützt dich so vor gefälschten Seiten.",
+    "primaryCta": "Passkey einrichten",
+    "secondaryCta": "Später",
+    "tertiaryCta": null,
+    "skippable": true,
+    "condition": "Gerät unterstützt Passkeys; bei 'Später' erneut nach dem 3. Chat",
+    "placeholders": ["biometricName"]
+  },
+  {
+    "key": "onboarding.phone",
+    "order": 5,
+    "title": "Handynummer hinzufügen?",
+    "body": "Damit können wir dich bei verdächtigen Anmeldungen warnen und dir als zusätzliche Sicherheit einen Code schicken. Wir nutzen deine Nummer nie für Werbung.",
+    "primaryCta": "Code per SMS",
+    "secondaryCta": "Lieber anrufen",
+    "tertiaryCta": "Überspringen",
+    "skippable": true,
+    "condition": "immer anbieten",
+    "placeholders": []
+  },
+  {
+    "key": "onboarding.phoneVerify",
+    "order": 6,
+    "title": "Code eingeben",
+    "body": "Wir haben dir einen Code an {phoneMasked} gesendet. Gib ihn niemals an andere weiter, auch nicht an jemanden, der sich als {appName}-Support ausgibt.",
+    "primaryCta": "Bestätigen",
+    "secondaryCta": "Neuen Code anfordern",
+    "tertiaryCta": "Stattdessen anrufen",
+    "skippable": false,
+    "condition": "nach onboarding.phone",
+    "placeholders": ["phoneMasked"]
+  },
+  {
+    "key": "onboarding.personalize",
+    "order": 7,
+    "title": "Wie sollen wir dich nennen?",
+    "body": "Damit {appName} dich persönlich ansprechen kann. Wofür möchtest du {appName} vor allem nutzen? Du kannst beides jederzeit ändern.",
+    "primaryCta": "Weiter",
+    "secondaryCta": "Überspringen",
+    "tertiaryCta": null,
+    "skippable": true,
+    "condition": "immer; Auswahl aus ui-texts onboarding.useCase.*",
+    "placeholders": []
+  },
+  {
+    "key": "onboarding.firstChat",
+    "order": 8,
+    "title": "Probier's aus",
+    "body": "Wähle einen Vorschlag oder schreib einfach los.",
+    "primaryCta": null,
+    "secondaryCta": null,
+    "tertiaryCta": null,
+    "skippable": false,
+    "condition": "immer; Vorschläge aus ui-texts chat.suggestion.*; vorher einmalig ai.disclaimer",
+    "placeholders": []
+  },
+  {
+    "key": "onboarding.notifications",
+    "order": 99,
+    "title": "Sollen wir dir Bescheid geben?",
+    "body": "Zum Beispiel, wenn eine längere Antwort fertig ist oder es eine Sicherheitswarnung zu deinem Konto gibt. Werbung schicken wir dir so nicht.",
+    "primaryCta": "Benachrichtigungen erlauben",
+    "secondaryCta": "Nicht jetzt",
+    "tertiaryCta": null,
+    "skippable": true,
+    "condition": "nicht im Onboarding, sondern beim ersten passenden Moment",
+    "placeholders": []
+  }
+]

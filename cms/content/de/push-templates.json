@@ -1,0 +1,44 @@
+[
+  {
+    "key": "push.loginApproval",
+    "description": "Freigabe einer Anmeldung auf einem neuen Gerät mit Zahlenabgleich.",
+    "title": "Anmeldung bestätigen?",
+    "body": "{deviceShort} in {location} möchte sich anmelden. Wähle die Zahl, die auf dem neuen Gerät angezeigt wird.",
+    "placeholders": ["deviceShort", "location"]
+  },
+  {
+    "key": "push.newLogin",
+    "description": "Info nach erfolgreicher Anmeldung auf einem neuen Gerät.",
+    "title": "Neue Anmeldung",
+    "body": "{deviceShort} in {location}. Warst du das nicht? Tippe hier, um das Gerät abzumelden.",
+    "placeholders": ["deviceShort", "location"]
+  },
+  {
+    "key": "push.securityAlert",
+    "description": "Jede Änderung an Sicherheitseinstellungen.",
+    "title": "Sicherheitshinweis",
+    "body": "{changeShort}. Warst du das nicht? Tippe hier, um dein Konto zu sichern.",
+    "placeholders": ["changeShort"]
+  },
+  {
+    "key": "push.supportVerification",
+    "description": "Der Support bittet um Identitätsbestätigung. Ersetzt das Vorlesen von Codes.",
+    "title": "Sprichst du gerade mit unserem Support?",
+    "body": "Bestätige nur, wenn du selbst in der App ein Support-Gespräch begonnen hast. Wir rufen nie von uns aus an.",
+    "placeholders": []
+  },
+  {
+    "key": "push.recoveryStarted",
+    "description": "Kontowiederherstellung gestartet.",
+    "title": "Wiederherstellung gestartet",
+    "body": "Jemand möchte dein Konto wiederherstellen. Warst du das nicht? Tippe hier und stoppe es.",
+    "placeholders": []
+  },
+  {
+    "key": "push.longAnswerReady",
+    "description": "Eine längere Antwort ist fertig (z. B. Recherche).",
+    "title": "Deine Antwort ist fertig",
+    "body": "{appName} hat deine Anfrage bearbeitet. Tippe, um sie zu lesen.",
+    "placeholders": []
+  }
+]

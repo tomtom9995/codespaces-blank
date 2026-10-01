@@ -1,0 +1,26 @@
+[
+  {
+    "key": "sms.verifyPhone",
+    "description": "Telefonnummer bestätigen (Onboarding oder Einstellungen). Letzte Zeile: domain-gebundenes Format für Autofill.",
+    "text": "{code} ist dein {appName}-Code. Gib ihn nie weiter, auch nicht an unseren Support. Wir rufen dich nie an, um danach zu fragen.\n\n@{domain} #{code}",
+    "placeholders": ["code"]
+  },
+  {
+    "key": "sms.loginCode",
+    "description": "Zweiter Faktor bei einer Anmeldung oder Zusatzbestätigung.",
+    "text": "{code} ist dein Anmeldecode für {appName} auf {deviceShort}. Nicht weitergeben! Warst du das nicht? Öffne die App.\n\n@{domain} #{code}",
+    "placeholders": ["code", "deviceShort"]
+  },
+  {
+    "key": "sms.securityAlert",
+    "description": "Hinweis an die bisherige Nummer bei jeder Sicherheitsänderung. Bewusst ohne Link.",
+    "text": "{appName}: {changeShort}. Warst du das nicht? Öffne sofort die App. Wir senden nie Links per SMS und rufen dich nie an.",
+    "placeholders": ["changeShort"]
+  },
+  {
+    "key": "sms.recoveryStarted",
+    "description": "Kontowiederherstellung gestartet. Bewusst ohne Link.",
+    "text": "{appName}: Für dein Konto wurde eine Wiederherstellung gestartet. Warst du das nicht? Öffne die App und stoppe sie. Wir rufen dich nie an.",
+    "placeholders": []
+  }
+]
