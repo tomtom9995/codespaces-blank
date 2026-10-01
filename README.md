@@ -8,7 +8,7 @@ Erstes lauffähiges Produkt nach dem Plan in [`docs/plan/`](docs/plan/README.md)
 | CMS für alle Texte | Strapi 5 | `cms/strapi/`, Texte in `cms/content/de/` | ✅ läuft, importiert Texte automatisch |
 | Gemeinsame App-Logik | Kotlin Multiplatform | `shared/` | ✅ End-to-End-Test gegen das Backend |
 | Android-App | Jetpack Compose | `apps/android/` | ✅ APK baut, Klick-Durchlauf mit Screenshots |
-| iOS-App | SwiftUI | `apps/ios/` | ⚠️ geschrieben, Build nur auf macOS (CI-Job vorhanden) |
+| iOS-App | SwiftUI | `apps/ios/` | ✅ baut in der CI auf macOS (Simulator); auf echtem Gerät noch nicht getestet |
 | CI/CD | GitHub Actions, Cloud Run | `.github/workflows/` | ✅ angelegt |
 
 ## Was schon funktioniert
