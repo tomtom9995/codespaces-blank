@@ -110,3 +110,24 @@ jobs:
       - run: node cms/scripts/validate-content.mjs
       - run: npm ci && npm run build
         working-directory: cms/strapi
+
+  infra:
+    name: Hosting & Backup – Prüfungen
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Shell-Skripte (shellcheck)
+        run: shellcheck -S warning infra/backup/*.sh infra/hosting/*.sh infra/hosting/keycloak/*.sh infra/hosting/nextcloud/hooks/*/*.sh infra/hosting/wordpress/*.sh
+      - name: Keycloak-Realm ist gültiges JSON
+        run: jq empty infra/hosting/keycloak/realm-chattia.json
+      - name: Compose-Datei
+        working-directory: infra/hosting
+        run: cp .env.example .env && docker compose config --quiet
+      - name: Backup-Image bauen
+        run: docker build -t chattia-backup infra/backup
+      - name: Backup-Image – Werkzeuge vorhanden
+        run: docker run --rm --entrypoint sh chattia-backup -c 'restic version && pg_dump --version && mariadb-dump --version && age --version && zstd --version'
+      - uses: hashicorp/setup-terraform@v3
+      - name: Terraform (Backup-Projekt)
+        working-directory: infra/terraform/backup
+        run: terraform fmt -check && terraform init -backend=false -input=false && terraform validate

@@ -4,7 +4,7 @@
 # überspringt das Skript die Installation und aktiviert nur das Login-Plugin.
 set -eu
 cd /var/www/html
-for i in $(seq 1 30); do wp core is-installed 2>/dev/null && break; [ -f wp-config.php ] && break; sleep 2; done
+for _ in $(seq 1 30); do wp core is-installed 2>/dev/null && break; [ -f wp-config.php ] && break; sleep 2; done
 
 if ! wp core is-installed 2>/dev/null; then
   wp core install --url="$WEB_URL" --title="Corps Chattia" --admin_user="notfall-admin" \

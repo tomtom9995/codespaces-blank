@@ -3,3 +3,4 @@ backup-repo/
 wordpress/plugins/
 nextcloud/apps/
 caddy-local-root.crt
+backup-archive/

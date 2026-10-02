@@ -8,11 +8,18 @@ WORK=$(mktemp -d /tmp/dumps.XXXX)
 STATUS=0
 log() { echo "$(date '+%F %T') [backup] $*"; }
 ping_health() { [ -n "${HEALTHCHECK_URL:-}" ] && curl -fsS -m 10 --retry 3 "${HEALTHCHECK_URL}$1" >/dev/null || true; }
-cleanup() { rm -rf "$WORK"; }
+MAINTENANCE_ON=0
+cleanup() {
+  # Wartungsmodus nie hängen lassen, auch wenn das Skript abbricht
+  if [ "$MAINTENANCE_ON" = "1" ]; then occ maintenance:mode --off >/dev/null 2>&1 || true; fi
+  rm -rf "$WORK"
+}
 trap cleanup EXIT
 
 ping_health /start
 restic cat config >/dev/null 2>&1 || { log "Repository wird angelegt"; restic init; }
+# Verwaiste Sperren abgebrochener Läufe entfernen (aktive Sperren bleiben unangetastet)
+restic unlock --quiet 2>/dev/null || true
 
 nc_container() { docker ps --filter "label=com.docker.compose.service=nextcloud" --format '{{.Names}}' | head -1; }
 occ() { docker exec -u www-data "$(nc_container)" php occ "$@"; }
@@ -20,9 +27,9 @@ occ() { docker exec -u www-data "$(nc_container)" php occ "$@"; }
 # 1) Datenbanken – Nextcloud kurz im Wartungsmodus, damit Datenbank und Dateien zusammenpassen.
 log "Datenbank-Dumps"
 NC=$(nc_container || true)
-if [ -n "$NC" ]; then occ maintenance:mode --on >/dev/null; fi
+if [ -n "$NC" ]; then occ maintenance:mode --on >/dev/null && MAINTENANCE_ON=1; fi
 pg_dump -Fc nextcloud > "$WORK/nextcloud.pgdump" || STATUS=1
-if [ -n "$NC" ]; then occ maintenance:mode --off >/dev/null; fi
+if [ "$MAINTENANCE_ON" = "1" ]; then occ maintenance:mode --off >/dev/null && MAINTENANCE_ON=0; fi
 pg_dump -Fc keycloak > "$WORK/keycloak.pgdump" || STATUS=1
 mariadb-dump -h "$MARIADB_HOST" -uroot -p"$MARIADB_ROOT_PASSWORD" --single-transaction --routines --triggers wordpress > "$WORK/wordpress.sql" || STATUS=1
 for f in "$WORK"/*; do log "  $(basename "$f"): $(du -h "$f" | cut -f1)"; done
@@ -39,12 +46,10 @@ restic backup --host "$HOST_TAG" --tag nextcloud-config /sources/nextcloud-html/
 log "WordPress (Uploads, Themes, Plugins)"
 restic backup --host "$HOST_TAG" --tag wordpress /sources/wordpress-html/wp-content --quiet || STATUS=1
 
-# 3) Aufbewahrung. Nur wenn diese Instanz Löschrechte hat (in Produktion übernimmt das ein separater Wartungsjob).
+# 3) Aufbewahrung. Nur wenn diese Instanz Löschrechte hat – in Produktion darf der Server NICHT löschen,
+#    das übernimmt maintenance.sh als separater Job mit eigenem Dienstkonto (siehe docs/plan/backup.md).
 if [ "${FORGET_ENABLED:-1}" = "1" ]; then
-  log "Aufbewahrung anwenden"
-  restic forget --host "$HOST_TAG" --group-by host,tags \
-    --keep-daily "${KEEP_DAILY:-14}" --keep-weekly "${KEEP_WEEKLY:-8}" \
-    --keep-monthly "${KEEP_MONTHLY:-24}" --keep-yearly "${KEEP_YEARLY:-10}" --prune --quiet || STATUS=1
+  /usr/local/bin/maintenance.sh --no-check || STATUS=1
 fi
 
 # 4) Stichprobe: 2 % der Daten werden bei jedem Lauf gelesen und geprüft.

@@ -197,6 +197,13 @@ services:
       BACKUP_SCHEDULE: ${BACKUP_SCHEDULE:-15 2 * * *}
       RESTORE_TEST_SCHEDULE: ${RESTORE_TEST_SCHEDULE:-30 4 1 * *}
       HEALTHCHECK_URL: ${BACKUP_HEALTHCHECK_URL:-}
+      # Produktion: 0 – der Server darf keine Backups löschen, das macht der getrennte Wartungsjob
+      FORGET_ENABLED: ${BACKUP_FORGET_ENABLED:-1}
+      OFFSITE_REPOSITORY: ${OFFSITE_REPOSITORY:-}
+      OFFSITE_PASSWORD: ${OFFSITE_PASSWORD:-}
+      ARCHIVE_AGE_RECIPIENT: ${ARCHIVE_AGE_RECIPIENT:-}
+      ARCHIVE_PATHS: ${ARCHIVE_PATHS:-}
+      ARCHIVE_BUCKET: ${ARCHIVE_BUCKET:-}
       PGHOST: postgres
       PGUSER: postgres
       PGPASSWORD: ${POSTGRES_ROOT_PASSWORD}
@@ -209,6 +216,7 @@ services:
       - wordpress-html:/sources/wordpress-html:ro
       - backup-cache:/root/.cache/restic
       - ${RESTIC_LOCAL_REPO_DIR:-./backup-repo}:/repo
+      - ${ARCHIVE_LOCAL_DIR:-./backup-archive}:/archive
     depends_on: [postgres, mariadb]
 
 volumes:

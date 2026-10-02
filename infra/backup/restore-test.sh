@@ -22,8 +22,9 @@ check "Keycloak-Dump lesbar" "pg_restore --list '$DUMPS/keycloak.pgdump' >/dev/n
 psql -q -c "DROP DATABASE IF EXISTS restore_test" >/dev/null && psql -q -c "CREATE DATABASE restore_test" >/dev/null
 check "Nextcloud-Datenbank einspielbar" "pg_restore --no-owner -d restore_test '$DUMPS/nextcloud.pgdump' >/dev/null 2>&1"
 USERS=$(psql -At -d restore_test -c "SELECT count(*) FROM oc_users" 2>/dev/null || echo 0)
+SSO_USERS=$(psql -At -d restore_test -c "SELECT count(*) FROM oc_user_oidc" 2>/dev/null || echo 0)
 FILES_DB=$(psql -At -d restore_test -c "SELECT count(*) FROM oc_filecache WHERE mimetype <> (SELECT id FROM oc_mimetypes WHERE mimetype='httpd/unix-directory')" 2>/dev/null || echo 0)
-log "  Nextcloud: $USERS lokale Konten, $FILES_DB Dateien laut Datenbank"
+log "  Nextcloud: $SSO_USERS Konten über zentralen Login, $USERS lokale Konten, $FILES_DB Dateien laut Datenbank"
 check "WordPress-Dump enthält Inhalte" "grep -q 'CREATE TABLE \`wp_posts\`' '$DUMPS/wordpress.sql'"
 FILES_RESTORED=$(find "$TARGET/sources/nextcloud-data" -path '*/files/*' -type f 2>/dev/null | wc -l)
 log "  Nextcloud: $FILES_RESTORED Dateien wiederhergestellt"
