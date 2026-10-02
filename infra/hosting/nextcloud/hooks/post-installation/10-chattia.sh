@@ -41,6 +41,7 @@ occ user_oidc:provider chattia \
   --mapping-groups=groups \
   --group-provisioning=1 \
   --check-bearer=1 \
+  --bearer-provisioning=1 \
   --send-id-token-hint=1
 # Login direkt über Keycloak; Notfall-Login für Admins bleibt unter /login?direct=1 erreichbar.
 occ config:app:set --type=string --value=0 user_oidc allow_multiple_user_backends

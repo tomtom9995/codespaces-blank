@@ -180,7 +180,10 @@ class OidcService(
             }
         } ?: throw ApiException(HttpStatusCode.BadRequest, "invalid_state", "Die Anmeldung ist abgelaufen. Bitte starte sie erneut.")
         val (verifier, nonce, appRedirect) = saved
-        if (error != null || code == null) return "$appRedirect?error=${error ?: "cancelled"}"
+        if (error != null || code == null) {
+            val reason = if (error == "access_denied") "cancelled" else "failed"
+            return "$appRedirect?error=$reason"
+        }
 
         val tokens = tokenRequest(
             "grant_type" to "authorization_code",
