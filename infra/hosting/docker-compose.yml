@@ -1,5 +1,5 @@
 # Hosting-Stack für Corps Chattia: zentraler Login, Nextcloud, WordPress, Backup.
-# Lokal:      cp .env.example .env && docker compose up -d   →  http://cloud.chattia.localhost:8000
+# Lokal:      cp .env.example .env && docker compose up -d   →  https://cloud.chattia.internal:8443
 # Produktion: .env mit echten Domains (https://…) – Caddy holt TLS-Zertifikate automatisch.
 name: chattia
 
@@ -100,6 +100,8 @@ services:
       CHATTIA_AUTH_URL: ${AUTH_URL}
       CHATTIA_OIDC_SECRET: ${NEXTCLOUD_OIDC_SECRET}
       CHATTIA_INSTALL_APPS: ${NEXTCLOUD_EXTRA_APPS:-}
+      # Keycloak liegt im selben Docker-Netz (private Adresse) – sonst blockiert Nextcloud den Abruf.
+      CHATTIA_ALLOW_LOCAL_REMOTE: ${NEXTCLOUD_ALLOW_LOCAL_REMOTE:-1}
     volumes:
       - nextcloud-html:/var/www/html
       - nextcloud-data:/var/www/html/data

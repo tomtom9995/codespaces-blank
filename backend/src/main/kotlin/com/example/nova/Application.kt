@@ -63,6 +63,16 @@ import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.utils.io.writeStringUtf8
+import io.ktor.utils.io.copyAndClose
+import io.ktor.client.statement.bodyAsChannel
+import io.ktor.http.ContentDisposition
+import io.ktor.http.contentLength
+import io.ktor.http.contentType
+import io.ktor.server.request.contentType
+import io.ktor.server.request.receiveChannel
+import io.ktor.server.response.respondRedirect
+import com.example.nova.central.FilesService
+import com.example.nova.central.OidcService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -82,6 +92,8 @@ class Services(
     val account: AccountService,
     val chat: ChatService,
     val onboarding: OnboardingScheduler,
+    val oidc: OidcService,
+    val files: FilesService,
 ) {
     companion object {
         fun create(
@@ -117,11 +129,14 @@ class Services(
                 "openai" -> OpenAiCompatibleProvider(http, config.openAiBaseUrl ?: error("OPENAI_BASE_URL fehlt"), config.openAiApiKey, config.openAiModels)
                 else -> MockProvider()
             }
+            val oidc = OidcService(config, db, http, auth)
             return Services(
                 config, db, http, content, email, phone, auth,
                 AccountService(config, db, auth, email, phone, content),
                 ChatService(db, provider, content),
                 OnboardingScheduler(config, db, email),
+                oidc,
+                FilesService(config, http, oidc),
             )
         }
     }
@@ -214,7 +229,26 @@ fun Application.module(s: Services) {
         rateLimit(RateLimitName("auth")) {
             route("/v1/auth") {
                 get("/providers") {
-                    call.respond(mapOf("google" to s.auth.let { s.config.googleClientIds.isNotEmpty() }, "apple" to s.config.appleClientIds.isNotEmpty()))
+                    call.respond(
+                        mapOf(
+                            "google" to s.config.googleClientIds.isNotEmpty(),
+                            "apple" to s.config.appleClientIds.isNotEmpty(),
+                            "central" to s.oidc.enabled,
+                        ),
+                    )
+                }
+                // Zentraler Login (Keycloak): Browser-Weiterleitungen, danach Einmalcode → App
+                get("/oidc/start") {
+                    val redirect = call.request.queryParameters["redirect"] ?: s.config.oidcAppRedirects.first()
+                    call.respondRedirect(s.oidc.startUrl(redirect))
+                }
+                get("/oidc/callback") {
+                    val q = call.request.queryParameters
+                    call.respondRedirect(s.oidc.callback(q["code"], q["state"], q["error"]))
+                }
+                post("/oidc/exchange") {
+                    val req = call.receive<OidcExchangeRequest>()
+                    call.respond(s.oidc.exchange(req.code, req.device, call.requestContext(s.config)))
                 }
                 post("/email/start") {
                     val req = call.receive<EmailStartRequest>()
@@ -284,6 +318,39 @@ private fun Route.appRoutes(s: Services) {
     }
 
     get("/v1/models") { call.respond(s.chat.models) }
+
+    // Dateien aus der Chattia-Cloud (Nextcloud) – im Namen des Nutzers
+    route("/v1/files") {
+        get { call.respond(s.files.list(call.appPrincipal(), call.request.queryParameters["path"] ?: "/")) }
+        get("/content") {
+            val path = call.request.queryParameters["path"] ?: throw badRequest("invalid_path", "Pfad fehlt.")
+            s.files.download(call.appPrincipal(), path) { upstream ->
+                val name = FilesService.normalize(path).last()
+                call.response.header(
+                    HttpHeaders.ContentDisposition,
+                    ContentDisposition.Attachment.withParameter(ContentDisposition.Parameters.FileName, name).toString(),
+                )
+                call.respondBytesWriter(
+                    contentType = upstream.contentType() ?: ContentType.Application.OctetStream,
+                    contentLength = upstream.contentLength(),
+                ) { upstream.bodyAsChannel().copyAndClose(this) }
+            }
+        }
+        put("/content") {
+            val path = call.request.queryParameters["path"] ?: throw badRequest("invalid_path", "Pfad fehlt.")
+            s.files.upload(call.appPrincipal(), path, call.receiveChannel(), call.request.contentType().takeIf { it != ContentType.Any }, call.request.header(HttpHeaders.ContentLength)?.toLongOrNull())
+            call.respond(HttpStatusCode.Created, mapOf("ok" to true))
+        }
+        post("/folder") {
+            s.files.createFolder(call.appPrincipal(), call.receive<CreateFolderRequest>().path)
+            call.respond(HttpStatusCode.Created, mapOf("ok" to true))
+        }
+        delete {
+            val path = call.request.queryParameters["path"] ?: throw badRequest("invalid_path", "Pfad fehlt.")
+            s.files.delete(call.appPrincipal(), path)
+            call.respond(mapOf("ok" to true))
+        }
+    }
 
     route("/v1/conversations") {
         get { call.respond(s.chat.list(call.appPrincipal())) }

@@ -13,6 +13,7 @@ import com.example.nova.WorkspaceDto
 import com.example.nova.badRequest
 import com.example.nova.content.ContentService
 import com.example.nova.db.Database
+import com.example.nova.db.queryOne
 import com.example.nova.db.update
 import com.example.nova.messaging.EmailService
 import com.example.nova.messaging.PhoneService
@@ -116,7 +117,7 @@ class AuthService(
 
     // ---------- Gemeinsamer Abschluss mit Risikoprüfung ----------
 
-    private suspend fun completeLogin(user: UserRow, isNewUser: Boolean, device: DeviceInfo, ctx: RequestContext): LoginResponse {
+    internal suspend fun completeLogin(user: UserRow, isNewUser: Boolean, device: DeviceInfo, ctx: RequestContext): LoginResponse {
         val publicKey = decodeDeviceKey(device)
         val fingerprint = Crypto.sha256Hex(publicKey)
         val risk = db.tx {
@@ -325,6 +326,9 @@ class AuthService(
 
     suspend fun toDto(user: UserRow, membership: MembershipRow): UserDto {
         val roleName = content.get().roles["workspace.${membership.role}"]?.name ?: membership.role
+        val centralGroups = db.tx {
+            queryOne("SELECT groups FROM oidc_accounts WHERE user_id = ?", user.id) { it.getString("groups") }
+        }
         return UserDto(
             id = user.id.toString(),
             email = user.email,
@@ -334,6 +338,8 @@ class AuthService(
             hasAntiPhishingPhrase = user.antiPhishingPhrase != null,
             marketingConsent = user.marketingConsent,
             workspace = WorkspaceDto(membership.workspaceId.toString(), membership.workspaceName, membership.role, roleName),
+            groups = centralGroups?.split(',')?.filter(String::isNotBlank) ?: emptyList(),
+            centralAccount = centralGroups != null,
         )
     }
 

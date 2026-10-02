@@ -16,6 +16,9 @@ $CONFIG = array (
   'versions_retention_obligation' => '30, 365',
   'skeletondirectory' => '',
   'activity_expire_days' => 365,
+  // Keycloak wird über das interne Docker-Netz erreicht (private IP). Nextcloud blockiert solche Ziele
+  // standardmäßig; freigeben nur, wenn der Identity Provider auf demselben Host läuft.
+  'allow_local_remote_servers' => getenv('CHATTIA_ALLOW_LOCAL_REMOTE') === '1',
   'log_type' => 'file',
   'loglevel' => 2,
 );

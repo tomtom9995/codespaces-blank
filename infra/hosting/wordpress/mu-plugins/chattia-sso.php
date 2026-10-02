@@ -14,18 +14,20 @@ const CHATTIA_ROLE_MAP = [
 
 /** Einstellungen kommen aus der Umgebung, nicht aus der Datenbank (nachvollziehbar, versioniert). */
 add_filter('pre_option_openid_connect_generic_settings', function () {
-    $auth = rtrim(getenv('CHATTIA_AUTH_URL') ?: '', '/') . '/realms/chattia/protocol/openid-connect';
+    $issuer = rtrim(getenv('CHATTIA_AUTH_URL') ?: '', '/') . '/realms/chattia';
+    $auth = $issuer . '/protocol/openid-connect';
     return [
         'login_type'               => 'button',
         'login_button_text'        => 'Mit Chattia-Konto anmelden',
         'client_id'                => 'wordpress',
         'client_secret'            => getenv('CHATTIA_OIDC_SECRET') ?: '',
-        'scope'                    => 'openid email profile groups',
+        'scope'                    => 'openid email profile',
         'endpoint_login'           => $auth . '/auth',
         'endpoint_userinfo'        => $auth . '/userinfo',
         'endpoint_token'           => $auth . '/token',
         'endpoint_end_session'     => $auth . '/logout',
         'endpoint_jwks'            => $auth . '/certs',
+        'issuer'                   => $issuer,
         'jwks_cache_ttl'           => 3600,
         'acr_values'               => '',
         'no_sslverify'             => 0,

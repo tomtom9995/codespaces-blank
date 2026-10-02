@@ -27,6 +27,16 @@ data class Config(
     val openAiApiKey: String?,
     val openAiModels: List<String>,
     val googleClientIds: List<String>,
+    /** Zentraler Login (Keycloak-Realm), z. B. https://auth.example.org/realms/chattia – leer = deaktiviert. */
+    val oidcIssuer: String?,
+    val oidcClientId: String,
+    val oidcClientSecret: String?,
+    /** Erlaubte Rücksprungadressen der Apps nach dem Login (z. B. nova://auth). */
+    val oidcAppRedirects: List<String>,
+    /** Nextcloud für die Dateiverwaltung in den Apps, z. B. https://cloud.example.org – leer = deaktiviert. */
+    val nextcloudUrl: String?,
+    /** Geheimnis, aus dem der AES-256-Schlüssel für gespeicherte Tokens des zentralen Logins abgeleitet wird. */
+    val tokenEncryptionKey: String,
     val appleClientIds: List<String>,
     val trustGeoHeaders: Boolean,
     val onboardingEnabled: Boolean,
@@ -72,6 +82,12 @@ data class Config(
                 openAiApiKey = opt("OPENAI_API_KEY"),
                 openAiModels = list("OPENAI_MODELS"),
                 googleClientIds = list("GOOGLE_CLIENT_IDS"),
+                oidcIssuer = opt("OIDC_ISSUER")?.trimEnd('/'),
+                oidcClientId = get("OIDC_CLIENT_ID", "nova-backend"),
+                oidcClientSecret = opt("OIDC_CLIENT_SECRET"),
+                oidcAppRedirects = list("OIDC_APP_REDIRECTS").ifEmpty { listOf("nova://auth") },
+                nextcloudUrl = opt("NEXTCLOUD_URL")?.trimEnd('/'),
+                tokenEncryptionKey = if (devMode) get("TOKEN_ENCRYPTION_KEY", "dev-only-token-encryption-secret") else get("TOKEN_ENCRYPTION_KEY"),
                 appleClientIds = list("APPLE_CLIENT_IDS"),
                 trustGeoHeaders = get("TRUST_GEO_HEADERS", "false").toBoolean(),
                 onboardingEnabled = get("ONBOARDING_EMAILS", "true").toBoolean(),

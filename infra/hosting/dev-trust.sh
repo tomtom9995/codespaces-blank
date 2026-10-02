@@ -1,5 +1,5 @@
 #!/bin/sh
-# NUR LOKAL: Dienste vertrauen der lokalen Zertifizierungsstelle von Caddy (für https://*.chattia.localhost).
+# NUR LOKAL: Dienste vertrauen der lokalen Zertifizierungsstelle von Caddy (für https://*.chattia.internal).
 # In Produktion nicht nötig – dort stellt Let's Encrypt öffentlich vertrauenswürdige Zertifikate aus.
 set -eu
 cd "$(dirname "$0")"

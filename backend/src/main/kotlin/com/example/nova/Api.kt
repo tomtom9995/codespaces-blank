@@ -71,6 +71,10 @@ data class UserDto(
     val hasAntiPhishingPhrase: Boolean,
     val marketingConsent: Boolean,
     val workspace: WorkspaceDto,
+    /** Gruppen aus dem zentralen Login (z. B. aktivitas, alte-herren, senior) – leer bei reinem E-Mail-Login. */
+    val groups: List<String> = emptyList(),
+    /** true, wenn das Konto mit dem zentralen Login verbunden ist (Voraussetzung für Dateien). */
+    val centralAccount: Boolean = false,
 )
 
 @Serializable
@@ -137,3 +141,22 @@ data class StreamEvent(
     val conversationTitle: String? = null,
     val message: String? = null,
 )
+
+@Serializable
+data class OidcExchangeRequest(val code: String, val device: DeviceInfo)
+
+@Serializable
+data class FileEntryDto(
+    val name: String,
+    val path: String,
+    val isFolder: Boolean,
+    val size: Long?,
+    val modified: String?,
+    val contentType: String?,
+)
+
+@Serializable
+data class FolderListing(val path: String, val entries: List<FileEntryDto>)
+
+@Serializable
+data class CreateFolderRequest(val path: String)

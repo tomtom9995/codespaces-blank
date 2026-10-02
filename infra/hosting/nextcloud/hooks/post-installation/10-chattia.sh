@@ -11,6 +11,8 @@ occ config:system:set default_locale --value=de_DE
 occ config:system:set maintenance_window_start --type=integer --value=1
 occ background:cron
 occ db:add-missing-indices || true
+# Willkommens-Assistent aus: Mitglieder kennen die Cloud bereits (Umzug), die Hilfe steht im Wiki.
+occ app:disable firstrunwizard || true
 
 cp /chattia/config/*.config.php /var/www/html/config/
 
@@ -31,7 +33,7 @@ occ user_oidc:provider chattia \
   --clientid=nextcloud \
   --clientsecret="${CHATTIA_OIDC_SECRET}" \
   --discoveryuri="${CHATTIA_AUTH_URL}/realms/chattia/.well-known/openid-configuration" \
-  --scope="openid email profile groups" \
+  --scope="openid email profile" \
   --unique-uid=0 \
   --mapping-uid=preferred_username \
   --mapping-display-name=name \

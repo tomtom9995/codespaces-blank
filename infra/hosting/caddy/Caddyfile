@@ -1,4 +1,4 @@
-# Sites kommen aus der .env: lokal "http://cloud.chattia.localhost:8000", in Produktion "cloud.example.org" (automatisch HTTPS).
+# Sites kommen aus der .env: lokal "https://cloud.chattia.internal:8443", in Produktion "cloud.example.org" (automatisch HTTPS).
 {
 	admin off
 }
