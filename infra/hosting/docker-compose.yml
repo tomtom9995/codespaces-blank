@@ -1,0 +1,219 @@
+# Hosting-Stack für Corps Chattia: zentraler Login, Nextcloud, WordPress, Backup.
+# Lokal:      cp .env.example .env && docker compose up -d   →  http://cloud.chattia.localhost:8000
+# Produktion: .env mit echten Domains (https://…) – Caddy holt TLS-Zertifikate automatisch.
+name: chattia
+
+x-restart: &restart
+  restart: unless-stopped
+
+services:
+  caddy:
+    <<: *restart
+    image: caddy:2-alpine
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:${HTTPS_PORT:-443}"
+    environment:
+      AUTH_SITE: ${AUTH_SITE}
+      CLOUD_SITE: ${CLOUD_SITE}
+      WEB_SITE: ${WEB_SITE}
+      API_SITE: ${API_SITE}
+      NOVA_UPSTREAM: ${NOVA_UPSTREAM:-host.docker.internal:8080}
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      default:
+        # Container erreichen die öffentlichen Namen über Caddy (wichtig für OIDC: gleicher Issuer innen und außen).
+        aliases: ["${AUTH_HOST}", "${CLOUD_HOST}", "${WEB_HOST}", "${API_HOST}"]
+
+  postgres:
+    <<: *restart
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_ROOT_PASSWORD}
+      KEYCLOAK_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      NEXTCLOUD_DB_PASSWORD: ${NEXTCLOUD_DB_PASSWORD}
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      - ./postgres/init.sh:/docker-entrypoint-initdb.d/init.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 30
+
+  keycloak:
+    <<: *restart
+    image: quay.io/keycloak/keycloak:26.4
+    command: ["start", "--import-realm"]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      KC_HOSTNAME: ${AUTH_URL}
+      KC_HTTP_ENABLED: "true"
+      KC_PROXY_HEADERS: xforwarded
+      KC_HEALTH_ENABLED: "true"
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      # Werte für Platzhalter in realm-chattia.json
+      CLOUD_URL: ${CLOUD_URL}
+      WEB_URL: ${WEB_URL}
+      API_URL: ${API_URL}
+      NEXTCLOUD_OIDC_SECRET: ${NEXTCLOUD_OIDC_SECRET}
+      WORDPRESS_OIDC_SECRET: ${WORDPRESS_OIDC_SECRET}
+      NOVA_OIDC_SECRET: ${NOVA_OIDC_SECRET}
+    volumes:
+      - ./keycloak/realm-chattia.json:/opt/keycloak/data/import/realm-chattia.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  redis:
+    <<: *restart
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+
+  nextcloud:
+    <<: *restart
+    image: nextcloud:32-apache
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: nextcloud
+      POSTGRES_USER: nextcloud
+      POSTGRES_PASSWORD: ${NEXTCLOUD_DB_PASSWORD}
+      REDIS_HOST: redis
+      NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_ADMIN_USER}
+      NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD}
+      NEXTCLOUD_TRUSTED_DOMAINS: ${CLOUD_HOST}
+      TRUSTED_PROXIES: 172.16.0.0/12 10.0.0.0/8 192.168.0.0/16
+      OVERWRITEPROTOCOL: ${CLOUD_SCHEME:-https}
+      OVERWRITECLIURL: ${CLOUD_URL}
+      OVERWRITEHOST: ${CLOUD_HOST_WITH_PORT:-}
+      PHP_UPLOAD_LIMIT: 16G
+      PHP_MEMORY_LIMIT: 1G
+      # Für den Hook post-installation/10-chattia.sh
+      CHATTIA_AUTH_URL: ${AUTH_URL}
+      CHATTIA_OIDC_SECRET: ${NEXTCLOUD_OIDC_SECRET}
+      CHATTIA_INSTALL_APPS: ${NEXTCLOUD_EXTRA_APPS:-}
+    volumes:
+      - nextcloud-html:/var/www/html
+      - nextcloud-data:/var/www/html/data
+      - ./nextcloud/hooks:/docker-entrypoint-hooks.d:ro
+      - ./nextcloud/config:/chattia/config:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  nextcloud-cron:
+    <<: *restart
+    image: nextcloud:32-apache
+    entrypoint: /cron.sh
+    volumes:
+      - nextcloud-html:/var/www/html
+      - nextcloud-data:/var/www/html/data
+    depends_on: [nextcloud]
+
+  mariadb:
+    <<: *restart
+    image: mariadb:11
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: wordpress
+      MARIADB_USER: wordpress
+      MARIADB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      retries: 30
+
+  wordpress:
+    <<: *restart
+    image: wordpress:6-apache
+    environment:
+      WORDPRESS_DB_HOST: mariadb
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      CHATTIA_AUTH_URL: ${AUTH_URL}
+      CHATTIA_OIDC_SECRET: ${WORDPRESS_OIDC_SECRET}
+      CHATTIA_ALLOW_INTERNAL_IDP: ${WORDPRESS_ALLOW_INTERNAL_IDP:-}
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_HOME', '${WEB_URL}');
+        define('WP_SITEURL', '${WEB_URL}');
+        define('DISALLOW_FILE_EDIT', true);
+        define('AUTOMATIC_UPDATER_DISABLED', false);
+        define('WP_AUTO_UPDATE_CORE', 'minor');
+        if (isset($$_SERVER['HTTP_X_FORWARDED_PROTO']) && $$_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') { $$_SERVER['HTTPS'] = 'on'; }
+    volumes:
+      - wordpress-html:/var/www/html
+      - ./wordpress/mu-plugins:/var/www/html/wp-content/mu-plugins:ro
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  # Einmalige Einrichtung von WordPress (Plugin, OIDC-Einstellungen): docker compose run --rm wpcli
+  wpcli:
+    image: wordpress:cli
+    profiles: ["tools"]
+    user: "33:33"
+    environment:
+      WORDPRESS_DB_HOST: mariadb
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      WEB_URL: ${WEB_URL}
+      AUTH_URL: ${AUTH_URL}
+      WORDPRESS_OIDC_SECRET: ${WORDPRESS_OIDC_SECRET}
+      WORDPRESS_ADMIN_EMAIL: ${WORDPRESS_ADMIN_EMAIL}
+    volumes:
+      - wordpress-html:/var/www/html
+      - ./wordpress/setup.sh:/setup.sh:ro
+      - ./wordpress/plugins:/plugins:ro
+    entrypoint: ["sh", "/setup.sh"]
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  # Datensicherung mit restic – siehe infra/backup und docs/plan/backup.md
+  backup:
+    <<: *restart
+    build: ../backup
+    environment:
+      RESTIC_REPOSITORY: ${RESTIC_REPOSITORY}
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD}
+      GOOGLE_PROJECT_ID: ${GOOGLE_PROJECT_ID:-}
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-}
+      BACKUP_SCHEDULE: ${BACKUP_SCHEDULE:-15 2 * * *}
+      RESTORE_TEST_SCHEDULE: ${RESTORE_TEST_SCHEDULE:-30 4 1 * *}
+      HEALTHCHECK_URL: ${BACKUP_HEALTHCHECK_URL:-}
+      PGHOST: postgres
+      PGUSER: postgres
+      PGPASSWORD: ${POSTGRES_ROOT_PASSWORD}
+      MARIADB_HOST: mariadb
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - nextcloud-data:/sources/nextcloud-data:ro
+      - nextcloud-html:/sources/nextcloud-html:ro
+      - wordpress-html:/sources/wordpress-html:ro
+      - backup-cache:/root/.cache/restic
+      - ${RESTIC_LOCAL_REPO_DIR:-./backup-repo}:/repo
+    depends_on: [postgres, mariadb]
+
+volumes:
+  caddy-data:
+  pg-data:
+  nextcloud-html:
+  nextcloud-data:
+  mariadb-data:
+  wordpress-html:
+  backup-cache:

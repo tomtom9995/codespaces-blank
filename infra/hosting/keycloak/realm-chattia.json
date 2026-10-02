@@ -1,0 +1,171 @@
+{
+  "realm": "chattia",
+  "displayName": "Corps Chattia",
+  "displayNameHtml": "<strong>Corps Chattia</strong>",
+  "enabled": true,
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "rememberMe": true,
+  "verifyEmail": true,
+  "sslRequired": "external",
+  "internationalizationEnabled": true,
+  "supportedLocales": ["de", "en"],
+  "defaultLocale": "de",
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "failureFactor": 8,
+  "waitIncrementSeconds": 60,
+  "maxFailureWaitSeconds": 900,
+  "maxDeltaTimeSeconds": 43200,
+  "quickLoginCheckMilliSeconds": 1000,
+  "minimumQuickLoginWaitSeconds": 60,
+  "passwordPolicy": "length(12) and notUsername and notEmail and passwordHistory(3)",
+  "otpPolicyType": "totp",
+  "otpPolicyAlgorithm": "HmacSHA1",
+  "otpPolicyDigits": 6,
+  "otpPolicyPeriod": 30,
+  "webAuthnPolicyPasswordlessRpEntityName": "Corps Chattia",
+  "webAuthnPolicyPasswordlessUserVerificationRequirement": "required",
+  "webAuthnPolicyPasswordlessRequireResidentKey": "Yes",
+  "webAuthnPolicyPasswordlessPasskeysEnabled": true,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 7200,
+  "ssoSessionMaxLifespan": 36000,
+  "offlineSessionIdleTimeout": 2592000,
+  "eventsEnabled": true,
+  "eventsExpiration": 7776000,
+  "enabledEventTypes": ["LOGIN", "LOGIN_ERROR", "LOGOUT", "UPDATE_PASSWORD", "UPDATE_TOTP", "REMOVE_TOTP", "UPDATE_CREDENTIAL", "REMOVE_CREDENTIAL", "RESET_PASSWORD", "SEND_RESET_PASSWORD", "UPDATE_EMAIL", "CODE_TO_TOKEN_ERROR"],
+  "adminEventsEnabled": true,
+  "adminEventsDetailsEnabled": true,
+  "attributes": {
+    "frontendUrl": "",
+    "adminEventsExpiration": "31536000"
+  },
+  "groups": [
+    {
+      "name": "aktivitas",
+      "attributes": { "beschreibung": ["Aktive Corpsstudenten"] },
+      "subGroups": [
+        { "name": "burschen", "attributes": { "beschreibung": ["Recipierte Corpsburschen der Aktivitas"] } },
+        { "name": "fuechse", "attributes": { "beschreibung": ["Füxe (Probezeit)"] } }
+      ]
+    },
+    { "name": "inaktive", "attributes": { "beschreibung": ["Inaktive Corpsburschen (studierend, nicht mehr aktiv)"] } },
+    { "name": "alte-herren", "attributes": { "beschreibung": ["Mitglieder des Altherrenverbands"] } },
+    {
+      "name": "chargen",
+      "attributes": { "beschreibung": ["Amtsträger der Aktivitas"] },
+      "subGroups": [
+        { "name": "senior" },
+        { "name": "consenior" },
+        { "name": "subsenior" },
+        { "name": "fuchsmajor" }
+      ]
+    },
+    { "name": "ahv-vorstand", "attributes": { "beschreibung": ["Vorstand des Altherrenverbands (Kasse, Schriftführung)"] } },
+    { "name": "hausverein", "attributes": { "beschreibung": ["Verwaltung des Corpshauses"] } },
+    { "name": "website-redaktion", "attributes": { "beschreibung": ["Darf die Website (WordPress) bearbeiten"] } },
+    { "name": "gaeste", "attributes": { "beschreibung": ["Gäste, Verkehrsgäste, Partner – nur geteilte Inhalte"] } },
+    { "name": "it-admins", "attributes": { "beschreibung": ["Technische Administration (mit Hardware-Schlüssel)"] } }
+  ],
+  "clientScopes": [
+    {
+      "name": "groups",
+      "description": "Gruppenmitgliedschaften als Claim \"groups\"",
+      "protocol": "openid-connect",
+      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" },
+      "protocolMappers": [
+        {
+          "name": "groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "consentRequired": false,
+          "config": {
+            "full.path": "false",
+            "claim.name": "groups",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "nextcloud",
+      "name": "Chattia Cloud (Nextcloud)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${NEXTCLOUD_OIDC_SECRET}",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "rootUrl": "${CLOUD_URL}",
+      "baseUrl": "${CLOUD_URL}",
+      "redirectUris": ["${CLOUD_URL}/apps/user_oidc/code", "${CLOUD_URL}/index.php/apps/user_oidc/code"],
+      "webOrigins": ["${CLOUD_URL}"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "${CLOUD_URL}/*",
+        "backchannel.logout.session.required": "true"
+      },
+      "defaultClientScopes": ["web-origins", "acr", "basic", "profile", "email", "roles", "groups"]
+    },
+    {
+      "clientId": "wordpress",
+      "name": "Website (WordPress)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${WORDPRESS_OIDC_SECRET}",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "rootUrl": "${WEB_URL}",
+      "redirectUris": ["${WEB_URL}/wp-admin/admin-ajax.php*"],
+      "webOrigins": ["${WEB_URL}"],
+      "attributes": { "post.logout.redirect.uris": "${WEB_URL}/*" },
+      "defaultClientScopes": ["web-origins", "acr", "basic", "profile", "email", "roles", "groups"]
+    },
+    {
+      "clientId": "nova-backend",
+      "name": "Nova App",
+      "description": "Nova-Backend (Backend-for-Frontend). Darf mit dem Token des Nutzers auf Nextcloud zugreifen.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${NOVA_OIDC_SECRET}",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["${API_URL}/v1/auth/oidc/callback"],
+      "webOrigins": ["${API_URL}"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "use.refresh.tokens": "true",
+        "client.offline.session.idle.timeout": "2592000"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience-nextcloud",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "nextcloud",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        }
+      ],
+      "defaultClientScopes": ["web-origins", "acr", "basic", "profile", "email", "roles", "groups"],
+      "optionalClientScopes": ["offline_access"]
+    }
+  ]
+}
