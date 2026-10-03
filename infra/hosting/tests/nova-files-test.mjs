@@ -26,7 +26,7 @@ await page.goto(`${api}/v1/auth/oidc/start?redirect=nova://auth`).catch(() => {}
 await page.fill("#username", user);
 await page.fill("#password", password);
 await page.click("#kc-login").catch(() => {});
-for (let i = 0; i < 40 && !appRedirect; i++) await page.waitForTimeout(250);
+for (let i = 0; i < 120 && !appRedirect; i++) await page.waitForTimeout(250); // bis 30 s (Kaltstart)
 await browser.close();
 assert.ok(appRedirect, "Kein Rücksprung zur App erhalten");
 const code = new URL(appRedirect).searchParams.get("code");
