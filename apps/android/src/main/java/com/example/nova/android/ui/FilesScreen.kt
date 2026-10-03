@@ -196,7 +196,7 @@ fun FilesScreen(nova: NovaApp, centralLoginCallback: MutableStateFlow<String?>, 
                                 Icon(iconFor(entry), null, tint = if (entry.isFolder) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
                             },
                             trailingContent = {
-                                IconButton(onClick = { deleteCandidate = entry }) { Icon(Icons.Outlined.Delete, t("files.delete")) }
+                                if (entry.canDelete) IconButton(onClick = { deleteCandidate = entry }) { Icon(Icons.Outlined.Delete, t("files.delete")) }
                             },
                             modifier = Modifier.clickable { open(entry) },
                         )

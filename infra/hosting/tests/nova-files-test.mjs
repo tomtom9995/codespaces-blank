@@ -87,7 +87,17 @@ assert.equal(res.status, 200);
 res = await call("GET", `/v1/files?path=${encodeURIComponent(folder)}`, null, auth);
 assert.equal(res.status, 404);
 console.log("✓ Ordner gelöscht (liegt im Nextcloud-Papierkorb)");
-// 4) Chattia-Assistent: Antwort aus den Cloud-Dokumenten (Beispieldaten aus dev-files.sh)
+// 4) Team-Ordner: Rechte aus den Gruppen (bursch = burschen + website-redaktion)
+if (user === "bursch") {
+  const names = root.entries.filter((e) => e.isFolder).map((e) => e.name);
+  for (const n of ["Corps", "Semesterprogramm", "Aktivitas", "Website"]) assert.ok(names.includes(n), `Team-Ordner ${n} fehlt: ${names}`);
+  for (const n of ["Kasse", "AHV-Vorstand", "Amt Senior", "Fuchsenstall"]) assert.ok(!names.includes(n), `Team-Ordner ${n} dürfte nicht sichtbar sein`);
+  res = await call("GET", `/v1/files?path=${encodeURIComponent("/Kasse")}`, null, auth);
+  assert.equal(res.status, 404);
+  console.log("✓ Team-Ordner nach Gruppen:", names.join(", "), "– Kasse nicht sichtbar");
+}
+
+// 5) Chattia-Assistent: Antwort aus den Cloud-Dokumenten (Beispieldaten aus dev-files.sh)
 if (process.env.SKIP_ASSISTANT !== "1") {
   const conversation = await (await call("POST", "/v1/conversations", {}, auth)).json();
   const sse = await (await call("POST", `/v1/conversations/${conversation.id}/messages`, { content: "Wann ist das Stiftungsfest und was ist der Dresscode?" }, auth)).text();
@@ -95,6 +105,12 @@ if (process.env.SKIP_ASSISTANT !== "1") {
     .filter((e) => e.type === "delta").map((e) => e.text).join("");
   assert.match(answer, /Stiftungsfest/);
   assert.match(answer, /\/Semesterprogramm\/WS-2026\.md/);
+  if (user === "bursch") {
+    const conv2 = await (await call("POST", "/v1/conversations", {}, auth)).json();
+    const sse2 = await (await call("POST", `/v1/conversations/${conv2.id}/messages`, { content: "Wie hoch ist der AH-Beitrag laut Beitragsordnung?" }, auth)).text();
+    assert.ok(!/240|Beitragsordnung\.md|Kasse/.test(sse2), "Assistent hat vertrauliche Kasse-Unterlagen verwendet");
+    console.log("✓ Assistent nutzt keine Unterlagen, die der Nutzer nicht sehen darf (Kasse)");
+  }
   console.log("✓ Assistent antwortet aus der Cloud mit Quelle:", answer.split("\n").filter((l) => l.includes("Stiftungsfest") || l.includes(".md")).join(" | ").slice(0, 160));
 }
 console.log("Alle Prüfungen bestanden.");

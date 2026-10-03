@@ -107,6 +107,8 @@ services:
       - nextcloud-data:/var/www/html/data
       - ./nextcloud/hooks:/docker-entrypoint-hooks.d:ro
       - ./nextcloud/config:/chattia/config:ro
+      - ./nextcloud/teamfolders.conf:/chattia/teamfolders.conf:ro
+      - ./nextcloud/teamfolders.sh:/chattia/teamfolders.sh:ro
     depends_on:
       postgres:
         condition: service_healthy

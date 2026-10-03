@@ -181,6 +181,8 @@ data class FileEntryDto(
     val size: Long? = null,
     val modified: String? = null,
     val contentType: String? = null,
+    /** false z. B. für Team-Ordner, die nur die Verwaltung entfernen kann. */
+    val canDelete: Boolean = true,
 )
 
 @Serializable

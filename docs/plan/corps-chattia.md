@@ -14,7 +14,7 @@ Stand: Oktober 2026 · Vorschläge, nach Nutzen und Aufwand sortiert. Alles baut
 |---|---|---|---|---|
 | 1 | **Chattia-Assistent**: KI beantwortet Fragen zu Satzung, Comment, Hausordnung, Semesterprogramm aus der Cloud | hoch | mittel | ✅ erste Version läuft |
 | 2 | Semesterprogramm als gemeinsamer Kalender + Anmeldung zu Veranstaltungen | hoch | gering | sofort |
-| 3 | Amtsordner und Übergabe-Checklisten je Charge | hoch | gering | sofort |
+| 3 | Amtsordner und Übergabe-Checklisten je Charge | hoch | gering | ✅ Team-Ordner angelegt |
 | 4 | Mitgliederverzeichnis AHV mit Opt-in-Profilen, Adressänderungen per Self-Service | hoch | mittel | Phase 2 |
 | 5 | Convent digital: Tagesordnung, Protokolle, Abstimmungen | mittel | gering | sofort |
 | 6 | Kasse: Belege-Ordner, Beitragsübersicht, 10-Jahres-Archiv (steht) | hoch | gering | sofort |
@@ -49,7 +49,7 @@ Nächste Schritte: PDF- und Office-Dokumente (Text-Extraktion), Vektorsuche bei 
 
 ## 3. Amtsordner und Übergabe
 
-Je Charge ein **Gruppenordner** (App *Team folders/Groupfolders*): Senior, Consenior, Subsenior, Fuchsmajor, Kassenwart AHV, Hauswart. Darin: laufende Vorgänge, Vorlagen, **Übergabe-Checkliste** (Nextcloud *Deck*): Konten, Schlüssel, Fristen, Ansprechpartner, Passwörter im Passwortmanager (*Passwords*-App oder Vaultwarden mit SSO). Beim Chargenwechsel: Gruppen in Keycloak umhängen, fertig.
+Je Charge ein **Team-Ordner** (App *Team folders/Groupfolders*). Umgesetzt in [`nextcloud/teamfolders.conf`](../../infra/hosting/nextcloud/teamfolders.conf): Corps, Semesterprogramm, Aktivitas, Fuchsenstall, Amt Senior/Consenior/Subsenior/Fuchsmajor, AHV-Vorstand, Kasse, Haus, Website, Archiv, jeweils mit Rechten je Gruppe. Das Skript `teamfolders.sh` legt sie an und gleicht die Rechte ab (wiederholbar, läuft bei der Installation automatisch). Getestet: Ein Bursch sieht Corps, Semesterprogramm, Aktivitas, Haus (lesend) und Website, aber nicht Kasse oder Amtsordner; auch der Assistent nutzt die Kasse-Unterlagen für ihn nicht. Darin: laufende Vorgänge, Vorlagen, **Übergabe-Checkliste** (Nextcloud *Deck*): Konten, Schlüssel, Fristen, Ansprechpartner, Passwörter im Passwortmanager (*Passwords*-App oder Vaultwarden mit SSO). Beim Chargenwechsel: Gruppen in Keycloak umhängen, fertig.
 
 ## 4. Mitgliederverzeichnis
 

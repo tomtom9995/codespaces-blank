@@ -27,7 +27,7 @@ class FilesServiceTest {
    <d:resourcetype><d:collection/></d:resourcetype><oc:size>1234</oc:size></d:prop></d:propstat></d:response>
  <d:response><d:href>/remote.php/dav/files/senior/Kneipe%20Fotos/</d:href><d:propstat><d:prop>
    <d:getlastmodified>Fri, 02 Oct 2026 18:00:00 GMT</d:getlastmodified>
-   <d:resourcetype><d:collection/></d:resourcetype><oc:size>1000</oc:size></d:prop></d:propstat></d:response>
+   <d:resourcetype><d:collection/></d:resourcetype><oc:size>1000</oc:size><oc:permissions>RMGCK</oc:permissions></d:prop></d:propstat></d:response>
  <d:response><d:href>/remote.php/dav/files/senior/Satzung.pdf</d:href><d:propstat><d:prop>
    <d:getlastmodified>Thu, 01 Oct 2026 08:30:00 GMT</d:getlastmodified><d:getcontentlength>234</d:getcontentlength>
    <d:getcontenttype>application/pdf</d:getcontenttype><d:resourcetype/></d:prop></d:propstat></d:response>
@@ -39,9 +39,11 @@ class FilesServiceTest {
         assertEquals("/Kneipe Fotos", folder.path)
         assertEquals("2026-10-02T18:00:00Z", folder.modified)
         assertNull(folder.contentType)
+        assertEquals(false, folder.canDelete)
         val pdf = entries.first { it.name == "Satzung.pdf" }
         assertEquals(234L, pdf.size)
         assertEquals("application/pdf", pdf.contentType)
+        assertEquals(true, pdf.canDelete)
     }
 
     @Test

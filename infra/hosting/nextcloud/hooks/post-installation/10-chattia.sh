@@ -51,3 +51,8 @@ for app in ${CHATTIA_INSTALL_APPS:-}; do
   occ app:install "$app" || occ app:enable "$app" || echo "[chattia] App $app nicht verfügbar"
 done
 echo "[chattia] fertig"
+
+# Team-Ordner für Chargen und Gruppen (nur wenn die App verfügbar ist)
+if occ app:list --enabled | grep -q groupfolders; then
+  bash /chattia/teamfolders.sh /chattia/teamfolders.conf
+fi

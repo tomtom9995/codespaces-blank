@@ -76,7 +76,9 @@ struct FilesView: View {
                 Button { open(entry) } label: { row(entry) }
                     .foregroundStyle(.primary)
                     .swipeActions {
-                        Button(model.t("files.delete"), role: .destructive) { deleteCandidate = entry }
+                        if entry.canDelete {
+                            Button(model.t("files.delete"), role: .destructive) { deleteCandidate = entry }
+                        }
                     }
             }
             .listStyle(.plain)

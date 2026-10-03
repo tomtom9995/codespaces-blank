@@ -1,40 +1,71 @@
 #!/bin/bash
-# NUR LOKAL: Beispielinhalte in der Cloud für Demos und App-Tests.
-# Legt die Nextcloud-Konten der Testnutzer an (wie beim ersten SSO-Login) und füllt einige Ordner.
+# NUR LOKAL: Beispielinhalte in den Team-Ordnern (nextcloud/teamfolders.conf) für Demos und Tests.
+# Die Rechte kommen aus den Team-Ordnern: z. B. sieht ein Bursch „Corps“ und „Semesterprogramm“, aber nicht „Kasse“.
 set -euo pipefail
 cd "$(dirname "$0")"
 set -a; . ./.env; set +a
 
-ocs() { # Konto über die user_oidc-API anlegen (idempotent)
+nc() { docker compose exec -T -u www-data nextcloud "$@"; }
+ocs() { # Konto über die user_oidc-API anlegen (idempotent), damit es vor dem ersten Login existiert
   docker compose exec -T nextcloud curl -sf -o /dev/null -u "$NEXTCLOUD_ADMIN_USER:$NEXTCLOUD_ADMIN_PASSWORD" \
     -H "Host: $CLOUD_HOST_WITH_PORT" -H "OCS-APIRequest: true" -H "X-Forwarded-Proto: https" \
     -X POST "http://localhost/ocs/v2.php/apps/user_oidc/api/v1/user" \
     -d "providerId=1" -d "userId=$1" -d "displayName=$2" -d "email=$1@example.org"
 }
-put() { # benutzer pfad inhalt
-  docker compose exec -T -u www-data nextcloud sh -c "mkdir -p \"data/$1/files/$(dirname "$2")\" && cat > \"data/$1/files/$2\"" <<< "$3"
+folders=$(nc php occ groupfolders:list --output=json)
+put() { # team-ordner pfad inhalt
+  local id
+  id=$(nc php -r '$n=$argv[1]; foreach (json_decode($argv[2], true) as $f) { if (($f["mountPoint"] ?? "") === $n) echo $f["id"]; }' "$1" "$folders")
+  [ -n "$id" ] || { echo "Team-Ordner $1 fehlt – erst nextcloud/teamfolders.sh ausführen"; exit 1; }
+  nc sh -c "mkdir -p \"data/__groupfolders/$id/files/$(dirname "$2")\" && cat > \"data/__groupfolders/$id/files/$2\"" <<< "$3"
+  echo "$id"
 }
 
-for u in "bursch:Bernd Bursch" "senior:Max Mustermann"; do
-  name=${u%%:*}
-  ocs "$name" "${u#*:}"
-  put "$name" "Corps/Satzung.md" "# Satzung des Corps Chattia (Auszug, Beispiel)
+ocs bursch "Bernd Bursch"
+ocs senior "Max Mustermann"
 
-§ 1 Name und Sitz
-§ 2 Zweck: Lebensbund, Erziehung zu verantwortungsbewussten Persönlichkeiten …"
-  put "$name" "Corps/Comment.md" "# Comment (Beispiel)
+ids=()
+ids+=("$(put Corps "Satzung.md" "# Satzung des Corps Chattia (Auszug, Beispiel)
 
-Die Fuchsenzeit dauert in der Regel zwei Semester. Der Fuchsmajor betreut die Füxe."
-  put "$name" "Semesterprogramm/WS-2026.md" "# Semesterprogramm Wintersemester 2026/27
+## § 1 Name und Sitz
+
+Der Bund führt den Namen Corps Chattia.
+
+## § 2 Zweck
+
+Lebensbund, Erziehung zu verantwortungsbewussten Persönlichkeiten, Toleranz.")")
+ids+=("$(put Corps "Comment.md" "# Comment (Beispiel)
+
+## Fuchsenzeit
+
+Die Fuchsenzeit dauert in der Regel zwei Semester. Der Fuchsmajor betreut die Füxe.
+
+## Kneipe
+
+Auf der Kneipe führt das Präsidium. Es gilt der Kneipcomment.")")
+ids+=("$(put Semesterprogramm "WS-2026.md" "# Semesterprogramm Wintersemester 2026/27
 
 - 17.10. Antrittskneipe
 - 07.11. Fuchsenstunde
 - 28.11. Stiftungsfest (Dresscode: Frack bzw. Abendkleid)
-- 12.12. Weihnachtskneipe"
-  put "$name" "Kneipe/Liederliste.md" "# Liederliste Antrittskneipe
+- 12.12. Weihnachtskneipe")")
+ids+=("$(put Aktivitas "Kneipe/Liederliste.md" "# Liederliste Antrittskneipe
 
 1. Gaudeamus igitur
-2. Ergo bibamus"
-  docker compose exec -T -u www-data nextcloud php occ files:scan "$name" -q
-  echo "Beispieldateien für $name angelegt"
+2. Ergo bibamus")")
+ids+=("$(put "Amt Senior" "Übergabe-Checkliste.md" "# Übergabe Senior
+
+- Schlüssel Corpshaus und Kneipsaal übergeben
+- Zugänge: Keycloak-Gruppe chargen/senior umhängen (IT)
+- Fristen: Semesterbericht an den AHV bis 30.11.")")
+ids+=("$(put Kasse "Beitragsordnung.md" "# Beitragsordnung AHV (vertraulich, Beispiel)
+
+Der jährliche AH-Beitrag beträgt 240 Euro und ist bis 31.03. fällig.")")
+
+for id in $(printf '%s\n' "${ids[@]}" | sort -u); do nc php occ groupfolders:scan "$id" -q; done
+# Alte private Beispielordner aus früheren Versionen dieses Skripts entfernen
+for u in bursch senior; do
+  nc sh -c "rm -rf data/$u/files/Corps data/$u/files/Semesterprogramm data/$u/files/Kneipe" || true
+  nc php occ files:scan "$u" -q
 done
+echo "Beispieldateien in den Team-Ordnern angelegt (Corps, Semesterprogramm, Aktivitas, Amt Senior, Kasse)"

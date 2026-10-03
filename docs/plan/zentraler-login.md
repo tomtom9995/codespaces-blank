@@ -102,7 +102,7 @@ docker compose cp keycloak/dev-users.sh keycloak:/tmp/ && docker compose exec ke
 docker compose --profile tools run --rm wpcli   # WordPress einrichten
 ```
 
-Testkonten: `senior` (Charge, IT, Redaktion: zweiter Faktor), `bursch` (Redaktion), `fux`, `altherr` (AHV-Vorstand: zweiter Faktor), Passwort `Chattia-Test-2026!`. Beispieldateien: `./dev-files.sh`. Dann https://cloud.chattia.internal:8443 (Browser-Warnung zur lokalen CA einmal bestätigen oder `caddy-local-root.crt` importieren).
+Testkonten: `senior` (Charge, IT, Redaktion: zweiter Faktor), `bursch` (Redaktion), `fux`, `altherr` (AHV-Vorstand: zweiter Faktor), Passwort `Chattia-Test-2026!`. Team-Ordner und Beispieldateien: `docker compose exec -u www-data nextcloud bash /chattia/teamfolders.sh` (bei Neuinstallation automatisch), dann `./dev-files.sh`. Dann https://cloud.chattia.internal:8443 (Browser-Warnung zur lokalen CA einmal bestätigen oder `caddy-local-root.crt` importieren).
 
 | Keycloak | Nextcloud nach SSO | WordPress: Redaktion | WordPress: Fux abgewiesen |
 |---|---|---|---|

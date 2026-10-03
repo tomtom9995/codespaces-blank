@@ -158,7 +158,7 @@ class FilesService(
     companion object {
         private val PROPFIND_BODY = """<?xml version="1.0" encoding="UTF-8"?>
 <d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns">
-  <d:prop><d:getlastmodified/><d:getcontentlength/><d:getcontenttype/><d:resourcetype/><oc:size/></d:prop>
+  <d:prop><d:getlastmodified/><d:getcontentlength/><d:getcontenttype/><d:resourcetype/><oc:size/><oc:permissions/></d:prop>
 </d:propfind>"""
 
         /** Zerlegt einen Pfad in Segmente und weist alles zurück, was aus dem eigenen Bereich herausführen könnte. */
@@ -196,6 +196,8 @@ class FilesService(
                         runCatching { ZonedDateTime.parse(it, DateTimeFormatter.RFC_1123_DATE_TIME).toInstant().toString() }.getOrNull()
                     },
                     contentType = if (isFolder) null else r.text("DAV:", "getcontenttype"),
+                    // Nextcloud: D = löschen erlaubt (fehlt z. B. beim Wurzelordner eines Team-Ordners)
+                    canDelete = r.text("http://owncloud.org/ns", "permissions")?.contains('D') ?: true,
                 )
             }
         }
