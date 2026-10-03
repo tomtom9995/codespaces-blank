@@ -224,6 +224,29 @@ services:
       - ${ARCHIVE_LOCAL_DIR:-./backup-archive}:/archive
     depends_on: [postgres, mariadb]
 
+  # Notfall-Wiederherstellung aus dem Backup (nur auf Anforderung): docker compose --profile restore run --rm restore
+  restore:
+    profiles: ["restore"]
+    build: ../backup
+    entrypoint: ["/usr/local/bin/restore-platform.sh"]
+    environment:
+      RESTIC_REPOSITORY: ${RESTIC_REPOSITORY}
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD}
+      GOOGLE_PROJECT_ID: ${GOOGLE_PROJECT_ID:-}
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-}
+      PGHOST: postgres
+      PGUSER: postgres
+      PGPASSWORD: ${POSTGRES_ROOT_PASSWORD}
+      MARIADB_HOST: mariadb
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+    volumes:
+      - nextcloud-data:/sources/nextcloud-data
+      - nextcloud-html:/sources/nextcloud-html
+      - wordpress-html:/sources/wordpress-html
+      - backup-cache:/root/.cache/restic
+      - ${RESTIC_LOCAL_REPO_DIR:-./backup-repo}:/repo
+    depends_on: [postgres, mariadb]
+
 volumes:
   caddy-data:
   pg-data:

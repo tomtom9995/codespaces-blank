@@ -41,8 +41,9 @@ restic backup --host "$HOST_TAG" --tag nextcloud-files /sources/nextcloud-data \
   --exclude '/sources/nextcloud-data/appdata_*/preview' \
   --exclude '/sources/nextcloud-data/*/cache' \
   --exclude '/sources/nextcloud-data/nextcloud.log*' --quiet || STATUS=1
-log "Nextcloud-Konfiguration und Apps"
-restic backup --host "$HOST_TAG" --tag nextcloud-config /sources/nextcloud-html/config /sources/nextcloud-html/custom_apps --quiet || STATUS=1
+log "Nextcloud-Programmverzeichnis (Konfiguration, Apps, Version)"
+# Vollständig: dedupliziert kaum Platz, und die Wiederherstellung landet exakt auf derselben Version
+restic backup --host "$HOST_TAG" --tag nextcloud-html /sources/nextcloud-html --quiet || STATUS=1
 log "WordPress (Uploads, Themes, Plugins)"
 restic backup --host "$HOST_TAG" --tag wordpress /sources/wordpress-html/wp-content --quiet || STATUS=1
 

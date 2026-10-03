@@ -41,7 +41,7 @@ Ebene 1 deckt erfahrungsgemäß über 90 % der Fälle („Ich habe den Ordner ge
 | Keycloak-Datenbank | `pg_dump -Fc` | Konten, Gruppen, Passkeys, 2FA – ohne sie kommt niemand mehr rein |
 | WordPress-Datenbank | `mariadb-dump --single-transaction` | konsistent ohne Sperre |
 | Nextcloud-Dateien | restic, ohne Vorschaubilder und Caches | lassen sich neu erzeugen |
-| Nextcloud-Konfiguration, Apps | restic | `config.php` enthält Secret und Instanz-ID |
+| Nextcloud-Programmverzeichnis | restic (vollständig, dedupliziert) | `config.php` mit Secret und Instanz-ID; Restore landet exakt auf derselben Version |
 | WordPress `wp-content` | restic | Uploads, Theme, Plugins |
 | Konfiguration des Stacks | Git (dieses Repository) | Geheimnisse liegen im Secret Manager, nicht im Backup-Skript |
 
@@ -98,14 +98,16 @@ Regel „zwei Personen, zwei Orte“: Fällt der IT-Verantwortliche aus (Wechsel
    # dann per Web-Upload oder: docker compose cp … nextcloud:/var/www/html/data/<nutzer>/files/… && occ files:scan <nutzer>
    ```
 
-**B) Ganze Plattform verloren (VM weg, Projekt kompromittiert)**
-1. Neue VM aus Terraform/Startskript (oder neues Projekt), Repository klonen, `.env` aus Secret Manager.
-2. `docker compose up -d postgres mariadb` – nur Datenbanken.
-3. Letzten Snapshot `databases` wiederherstellen: `pg_restore -d keycloak`, `pg_restore -d nextcloud`, `mariadb wordpress < wordpress.sql`.
-4. Snapshots `nextcloud-files`, `nextcloud-config`, `wordpress` in die Volumes zurückspielen.
-5. `docker compose up -d`, dann `occ maintenance:data-fingerprint` (Clients synchronisieren sauber neu) und `occ files:scan --all`.
-6. DNS auf die neue IP; Let's Encrypt holt Zertifikate automatisch.
-7. Ist das Google-Konto selbst nicht nutzbar: dasselbe mit dem Offsite-Repository (`OFFSITE_REPOSITORY`, eigenes Passwort).
+**B) Ganze Plattform verloren (VM weg, Projekt kompromittiert)** – automatisiert mit [`restore-platform.sh`](../../infra/backup/restore-platform.sh)
+```bash
+# neue VM (infra/terraform/hosting) bzw. leere Volumes; .env aus dem Secret Manager
+docker compose up -d --wait postgres mariadb
+docker compose --profile restore run --rm restore        # Datenbanken + Nextcloud + WordPress aus dem letzten Stand
+docker compose up -d
+docker compose exec -u www-data nextcloud php occ maintenance:data-fingerprint   # Sync-Clients gleichen sauber ab
+docker compose exec -u www-data nextcloud php occ files:scan --all
+```
+Das Skript bricht ab, wenn Volumes nicht leer sind (Schutz vor versehentlichem Überschreiben). DNS auf die neue IP; Let's Encrypt holt die Zertifikate neu. Ist das Google-Konto selbst nicht nutzbar: dasselbe mit `RESTIC_REPOSITORY=$OFFSITE_REPOSITORY` und dem Offsite-Passwort.
 
 **C) Ransomware hat Dateien verschlüsselt und synchronisiert**
 Snapshot von *vor* dem Befall wählen (`restic snapshots`, `restic diff <alt> <neu>` zeigt massenhaft geänderte Dateien), Nextcloud in den Wartungsmodus, betroffene Nutzerordner aus dem alten Snapshot zurückspielen, `occ files:scan`, Clients danach neu verbinden. Die Backups selbst sind nicht betroffen: Der Server kann sie nicht ändern.
@@ -134,6 +136,20 @@ offsite-copy.sh    zweites Repository mit eigenem Passwort angelegt, alle Snapsh
 archive.sh         Ordner Corps als .tar.zst.age; Entschlüsseln nur mit dem privaten Schlüssel möglich, Inhalt vollständig
 Sperren            verwaiste restic-Sperre aus abgebrochenem Lauf → backup.sh räumt sie jetzt selbst auf
 ```
+
+## Notfallübung (lokal, 3. Oktober 2026)
+
+Kompletter Verlust simuliert: `docker compose down -v` löscht alle Datenbanken, Cloud-Dateien, die Website und die Zertifikate. Übrig bleibt nur das Backup-Repository.
+
+| Schritt | Ergebnis |
+|---|---|
+| Wiederherstellung (Datenbanken, 31 000 Dateien Nextcloud, Daten, WordPress) | 11 s |
+| Plattform wieder erreichbar (inkl. Start von Keycloak und Nextcloud) | **95 s** |
+| Vergleich mit dem Stand vor dem Verlust: Konten, Team-Ordner, SHA-256 aller Dokumente, Keycloak-Konten, Website | **identisch** |
+| SSO-Test (Keycloak → Nextcloud → WordPress, zweiter Faktor für Ämter) | bestanden |
+| App-Test (Login mit Chattia-Konto, Dateien, Rechte der Team-Ordner, Assistent) | bestanden |
+
+Die gemessene Zeit gilt für lokale Daten. In Produktion bestimmt die Download-Geschwindigkeit aus GCS die Dauer (200 GB bei ~100 MB/s ≈ 35 min). Das RTO-Ziel von 4 Stunden ist damit gut erreichbar. Die Übung gehört einmal im Jahr auf eine frische VM (Abschnitt Zeitplan).
 
 ## Offene Punkte vor dem Echtbetrieb
 
