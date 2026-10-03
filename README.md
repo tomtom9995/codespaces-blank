@@ -31,11 +31,21 @@ Erstes lauffähiges Produkt nach dem Plan in [`docs/plan/`](docs/plan/README.md)
 
 ## Corps Chattia: Cloud, Website, zentraler Login und Backup
 
-Ein Konto für alles: Mitglieder melden sich mit ihrem **Chattia-Konto** (Keycloak) an der Cloud, an der Website (Redaktion) und in der App an. In der App sehen sie ihre **Cloud-Dateien**, mit genau den Rechten wie im Browser. Start und Details: [docs/plan/zentraler-login.md](docs/plan/zentraler-login.md) · Umzug: [nextcloud-wordpress.md](docs/plan/nextcloud-wordpress.md) · Backup: [backup.md](docs/plan/backup.md) · Ideen fürs Corps: [corps-chattia.md](docs/plan/corps-chattia.md)
+Ein Konto für alles: Mitglieder melden sich mit ihrem **Chattia-Konto** (Keycloak) an der Cloud, an der Website (Redaktion) und in der App an.
 
-| Anmeldung (Keycloak) | Cloud nach SSO | App: Chattia-Konto | App: Cloud-Dateien | Chattia-Assistent |
-|---|---|---|---|---|
-| ![](docs/screenshots/hosting/01-keycloak-login.png) | ![](docs/screenshots/hosting/02-nextcloud-nach-sso.png) | ![](docs/screenshots/android/20-anmeldung-chattia-konto.png) | ![](docs/screenshots/android/21-dateien.png) | ![](docs/screenshots/android/25-assistent-aus-der-cloud.png) |
+- **Zentraler Login** mit Passkeys; **zweiter Faktor Pflicht** für Chargen, AHV-Vorstand und IT
+- **Gruppen = Corps-Rollen** (Aktivitas, Füxe, Alte Herren, Chargen …) – gepflegt nur in Keycloak, wirksam in Cloud, Website und App
+- **Team-Ordner** je Charge und Gruppe (Amt Senior, Kasse, Fuchsenstall …): Unterlagen gehören dem Amt, nicht der Person
+- **App:** Cloud-Dateien, **Semesterprogramm** (inkl. interner Termine) und der **Chattia-Assistent**, der Fragen aus den Cloud-Dokumenten beantwortet – jeweils mit genau den Rechten des Mitglieds
+- **Website:** öffentliche Termine erscheinen automatisch aus dem Cloud-Kalender
+- **Backup:** restic in ein eigenes Google-Cloud-Projekt mit Löschschutz, Offsite-Kopie, verschlüsseltes 10-Jahres-Archiv; **Notfallübung bestanden** (komplette Plattform in 95 s wiederhergestellt, Daten identisch)
+- **Umzug:** Runbook, Kontenübernahme per Skript, Terraform für VM und Backup-Projekt
+
+Details: [docs/plan/zentraler-login.md](docs/plan/zentraler-login.md) · Umzug: [nextcloud-wordpress.md](docs/plan/nextcloud-wordpress.md) · Backup: [backup.md](docs/plan/backup.md) · Ideen fürs Corps: [corps-chattia.md](docs/plan/corps-chattia.md)
+
+| Anmeldung (Keycloak) | Cloud nach SSO | App: Chattia-Konto | App: Team-Ordner | App: Termine | Chattia-Assistent |
+|---|---|---|---|---|---|
+| ![](docs/screenshots/hosting/01-keycloak-login.png) | ![](docs/screenshots/hosting/02-nextcloud-nach-sso.png) | ![](docs/screenshots/android/20-anmeldung-chattia-konto.png) | ![](docs/screenshots/android/21-dateien.png) | ![](docs/screenshots/android/26-termine.png) | ![](docs/screenshots/android/25-assistent-aus-der-cloud.png) |
 
 ## Screenshots (Android, automatisch erzeugt)
 
