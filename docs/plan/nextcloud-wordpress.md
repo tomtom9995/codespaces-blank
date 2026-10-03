@@ -34,6 +34,14 @@ Eine VM in Frankfurt mit Docker Compose: wenig Teile, wenig Kosten, gut zu über
 
 **Kosten (Richtwert):** VM e2-standard-2 ca. 50 €, 300 GB pd-balanced ca. 30 €, Snapshots + Backup ca. 15 €, ausgehender Traffic gering, **gesamt ca. 95 €/Monat**. Mit 1-Jahres-Commitment ca. 70 €. Kleiner geht es mit e2-medium (4 GB), wenn wenige gleichzeitig arbeiten.
 
+**Aufbau per Terraform** ([`infra/terraform/hosting`](../../infra/terraform/hosting/main.tf)): feste IP, Firewall nur 80/443, SSH nur über IAP mit OS Login, VM mit Shielded VM, Datendisk mit täglichen Snapshots (14 Tage) und `prevent_destroy`, Dienstkonto nur mit Secret- und Log-Rechten. Das Startskript hängt die Datendisk ein, installiert Docker (Datenverzeichnis auf der Datendisk), holt das Repository, schreibt die `.env` aus dem Secret `chattia-hosting-env` und startet den Stack.
+
+```bash
+cd infra/terraform/backup  && terraform apply -var project_id=chattia-backup -var server_service_account=chattia-vm@chattia-prod.iam.gserviceaccount.com
+cd infra/terraform/hosting && terraform apply -var project_id=chattia-prod -var repo_url=https://github.com/<org>/<repo>.git -var 'admin_members=["user:it@chattia.de"]'
+gcloud secrets create chattia-hosting-env --data-file=infra/hosting/.env.prod   # echte Domains, Geheimnisse, BACKUP_FORGET_ENABLED=0
+```
+
 Sicherheit der VM: kein SSH aus dem Internet (IAP-Tunnel), automatische Updates, Firewall nur 80/443, Keycloak-Admin nur über IAP/VPN (`Caddyfile` blockiert `/admin` von außen), Dienstkonto der VM ohne Löschrecht auf Backups.
 
 ## Umzug Nextcloud – Ablauf
