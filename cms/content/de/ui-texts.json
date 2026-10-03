@@ -140,5 +140,11 @@
   {"key": "files.connect", "category": "files", "text": "Mit Chattia-Konto verbinden"},
   {"key": "files.back", "category": "files", "text": "Zurück"},
   {"key": "files.retry", "category": "files", "text": "Erneut versuchen"},
-  {"key": "assistant.sources", "category": "chat", "description": "Unter Antworten, die Dokumente aus der Cloud verwenden.", "text": "Quellen aus der Cloud:"}
+  {"key": "assistant.sources", "category": "chat", "description": "Unter Antworten, die Dokumente aus der Cloud verwenden.", "text": "Quellen aus der Cloud:"},
+  {"key": "events.menu", "category": "events", "text": "Termine"},
+  {"key": "events.title", "category": "events", "text": "Termine"},
+  {"key": "events.empty", "category": "events", "text": "Keine Termine in den nächsten Monaten."},
+  {"key": "events.internal", "category": "events", "text": "intern"},
+  {"key": "events.allDay", "category": "events", "text": "ganztägig"},
+  {"key": "events.connectBody", "category": "events", "text": "Das Semesterprogramm liegt in der Cloud des Corps. Melde dich einmal mit deinem Chattia-Konto an, dann siehst du alle Termine auch hier."}
 ]

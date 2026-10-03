@@ -157,6 +157,11 @@ class NovaApi(
     @Throws(Exception::class)
     suspend fun revokeOtherDevices() { send<Map<String, Int>>(HttpMethod.Post, "/v1/devices/revoke-others") }
 
+    // ---------- Termine (Kalender des Corps) ----------
+
+    @Throws(Exception::class)
+    suspend fun events(days: Int = 180): List<EventDto> = send(HttpMethod.Get, "/v1/events?days=$days")
+
     // ---------- Dateien (Chattia-Cloud) ----------
 
     @Throws(Exception::class)

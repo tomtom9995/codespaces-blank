@@ -27,6 +27,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var conversations: [ConversationDto] = []
     @Published private(set) var bundle: AppContentBundle
     @Published private(set) var files: FilesState
+    @Published private(set) var events: EventsState
     @Published var setupPending = false
     let centralLogin = CentralLogin()
     private var observations: [Observation] = []
@@ -38,12 +39,14 @@ final class AppModel: ObservableObject {
         chat = nova.chat.state.value as! ChatState
         bundle = nova.content.bundle.value as! AppContentBundle
         files = nova.files.state.value as! FilesState
+        events = nova.events.state.value as! EventsState
         observations = [
             NovaAppKt.observe(nova.auth.state) { [weak self] in self?.session = $0 as! SessionState },
             NovaAppKt.observe(nova.chat.state) { [weak self] in self?.chat = $0 as! ChatState },
             NovaAppKt.observe(nova.chat.conversations) { [weak self] in self?.conversations = ($0 as? [ConversationDto]) ?? [] },
             NovaAppKt.observe(nova.content.bundle) { [weak self] in self?.bundle = $0 as! AppContentBundle },
             NovaAppKt.observe(nova.files.state) { [weak self] in self?.files = $0 as! FilesState },
+            NovaAppKt.observe(nova.events.state) { [weak self] in self?.events = $0 as! EventsState },
         ]
         nova.start()
     }

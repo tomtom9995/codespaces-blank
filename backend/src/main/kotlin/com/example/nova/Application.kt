@@ -71,6 +71,7 @@ import io.ktor.http.contentType
 import io.ktor.server.request.contentType
 import io.ktor.server.request.receiveChannel
 import io.ktor.server.response.respondRedirect
+import com.example.nova.central.EventsService
 import com.example.nova.central.FilesService
 import com.example.nova.central.KnowledgeService
 import com.example.nova.central.OidcService
@@ -95,6 +96,7 @@ class Services(
     val onboarding: OnboardingScheduler,
     val oidc: OidcService,
     val files: FilesService,
+    val events: EventsService,
 ) {
     companion object {
         fun create(
@@ -139,6 +141,7 @@ class Services(
                 OnboardingScheduler(config, db, email),
                 oidc,
                 files,
+                EventsService(config, http, oidc),
             )
         }
     }
@@ -320,6 +323,12 @@ private fun Route.appRoutes(s: Services) {
     }
 
     get("/v1/models") { call.respond(s.chat.models) }
+
+    // Termine aus den Kalendern des Corps (Nextcloud) – im Namen des Nutzers
+    get("/v1/events") {
+        val days = call.request.queryParameters["days"]?.toLongOrNull()?.coerceIn(1, 366) ?: 180
+        call.respond(s.events.upcoming(call.appPrincipal().userId, days))
+    }
 
     // Dateien aus der Chattia-Cloud (Nextcloud) – im Namen des Nutzers
     route("/v1/files") {

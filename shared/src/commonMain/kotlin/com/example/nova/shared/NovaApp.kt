@@ -5,6 +5,7 @@ import com.example.nova.shared.api.SessionStore
 import com.example.nova.shared.auth.AuthController
 import com.example.nova.shared.chat.ChatController
 import com.example.nova.shared.content.ContentRepository
+import com.example.nova.shared.events.EventsController
 import com.example.nova.shared.files.FilesController
 import com.example.nova.shared.platform.DeviceIdentity
 import com.example.nova.shared.platform.KeyValueStore
@@ -32,6 +33,7 @@ class NovaApp(
     val auth = AuthController(api, store)
     val chat = ChatController(api, scope) { content.text("chat.newChat") }
     val files = FilesController(api, scope)
+    val events = EventsController(api, scope)
 
     /** Für Swift (Standardwerte von Kotlin-Parametern sind dort nicht sichtbar). */
     constructor(baseUrl: String, device: DeviceIdentity, store: KeyValueStore) : this(baseUrl, device, store, "de", MainScope())

@@ -140,6 +140,14 @@ class CentralLoginTest {
         shot("25-assistent-aus-der-cloud")
 
         compose.onNodeWithContentDescription("Menü").performClick()
+        waitForText("Termine")
+        compose.onNodeWithText("Termine").performClick()
+        waitForText("Stiftungsfest")
+        waitForText("intern")
+        shot("26-termine")
+        compose.onNodeWithContentDescription("Zurück").performClick()
+        compose.waitUntil(10_000) { compose.onAllNodesWithContentDescription("Menü").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithContentDescription("Menü").performClick()
         waitForText("Dateien")
         compose.onNodeWithText("Dateien").performClick()
 

@@ -8,6 +8,7 @@ struct ChatView: View {
     @State private var showHistory = false
     @State private var showSettings = false
     @State private var showFiles = false
+    @State private var showEvents = false
 
     private var state: ChatState { model.chat }
 
@@ -28,6 +29,7 @@ struct ChatView: View {
             .sheet(isPresented: $showHistory) { historySheet }
             .sheet(isPresented: $showSettings) { SettingsView(user: user) }
             .fullScreenCover(isPresented: $showFiles) { FilesView() }
+            .fullScreenCover(isPresented: $showEvents) { EventsView() }
             .alert(state.error ?? "", isPresented: errorShown) {
                 Button("OK", role: .cancel) {}
             }
@@ -127,6 +129,7 @@ struct ChatView: View {
                     }
                 }
                 Section {
+                    Button { showHistory = false; showEvents = true } label: { Label(model.t("events.menu"), systemImage: "calendar") }
                     Button { showHistory = false; showFiles = true } label: { Label(model.t("files.menu"), systemImage: "folder") }
                     Button { showHistory = false; showSettings = true } label: { Label(model.t("settings.title"), systemImage: "gearshape") }
                 }

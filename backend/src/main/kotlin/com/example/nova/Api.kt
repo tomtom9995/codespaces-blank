@@ -162,3 +162,19 @@ data class FolderListing(val path: String, val entries: List<FileEntryDto>)
 
 @Serializable
 data class CreateFolderRequest(val path: String)
+
+@Serializable
+data class EventDto(
+    val id: String,
+    val title: String,
+    /** ISO-8601 (UTC). */
+    val start: String,
+    val end: String? = null,
+    val allDay: Boolean = false,
+    val location: String? = null,
+    val description: String? = null,
+    /** Name des Kalenders in der Cloud, z. B. „Semesterprogramm“ oder „Semesterprogramm intern“. */
+    val calendar: String,
+    /** Nur für Mitglieder (interner Kalender), erscheint nicht auf der Website. */
+    val internal: Boolean = false,
+)

@@ -70,13 +70,13 @@ for u in bursch senior; do
 done
 echo "Beispieldateien in den Team-Ordnern angelegt (Corps, Semesterprogramm, Aktivitas, Amt Senior, Kasse)"
 
-# Semesterprogramm-Kalender mit Beispielterminen (ein interner Termin, der nicht öffentlich erscheinen darf)
+# Kalender mit Beispielterminen (der Convent liegt im internen Kalender und erscheint nicht öffentlich)
 docker compose cp nextcloud/semesterprogramm.sh nextcloud:/tmp/semesterprogramm.sh >/dev/null 2>&1
 ics_url=$(docker compose exec -T nextcloud bash /tmp/semesterprogramm.sh)
-event() { # uid start ende titel ort klasse
+event() { # uid start ende titel ort klasse [kalender]
   docker compose exec -T nextcloud curl -fsS -o /dev/null -u "$NEXTCLOUD_ADMIN_USER:$NEXTCLOUD_ADMIN_PASSWORD" \
     -H "Host: $CLOUD_HOST_WITH_PORT" -H "X-Forwarded-Proto: https" -H "Content-Type: text/calendar" -X PUT \
-    "http://localhost/remote.php/dav/calendars/$NEXTCLOUD_ADMIN_USER/semesterprogramm/$1.ics" --data-binary @- <<ICS
+    "http://localhost/remote.php/dav/calendars/$NEXTCLOUD_ADMIN_USER/${7:-semesterprogramm}/$1.ics" --data-binary @- <<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Corps Chattia//dev-files//DE
@@ -94,7 +94,11 @@ ICS
 }
 event antritt-ws26 20261017T200000 20261017T235900 "Antrittskneipe" "Corpshaus" PUBLIC
 event fuchsenstunde-1 20261107T190000 20261107T210000 "Fuchsenstunde" "Corpshaus" PUBLIC
-event cc-intern-1 20261114T190000 20261114T220000 "Convent (intern)" "Corpshaus" PRIVATE
+# Interna gehören in den internen Kalender (Nextcloud blendet PRIVATE-Termine auch für Mitglieder aus)
+docker compose exec -T nextcloud curl -fsS -o /dev/null -X DELETE -u "$NEXTCLOUD_ADMIN_USER:$NEXTCLOUD_ADMIN_PASSWORD" \
+  -H "Host: $CLOUD_HOST_WITH_PORT" -H "X-Forwarded-Proto: https" \
+  "http://localhost/remote.php/dav/calendars/$NEXTCLOUD_ADMIN_USER/semesterprogramm/cc-intern-1.ics" 2>/dev/null || true
+event cc-intern-1 20261114T190000 20261114T220000 "Convent" "Corpshaus" PUBLIC semesterprogramm-intern
 event stiftungsfest-26 20261128T180000 20261129T020000 "Stiftungsfest" "Kurhaus" PUBLIC
 event weihnachtskneipe-26 20261212T200000 20261212T235900 "Weihnachtskneipe" "Corpshaus" PUBLIC
 echo "Semesterprogramm mit Beispielterminen. Öffentlicher Abo-Link (für WORDPRESS_EVENTS_ICS in .env):"

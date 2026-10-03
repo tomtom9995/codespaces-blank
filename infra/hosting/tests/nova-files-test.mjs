@@ -97,7 +97,21 @@ if (user === "bursch") {
   console.log("✓ Team-Ordner nach Gruppen:", names.join(", "), "– Kasse nicht sichtbar");
 }
 
-// 5) Chattia-Assistent: Antwort aus den Cloud-Dokumenten (Beispieldaten aus dev-files.sh)
+// 5) Termine: öffentlicher und interner Kalender (Beispieldaten aus dev-files.sh)
+if (user === "bursch") {
+  res = await call("GET", "/v1/events", null, auth);
+  assert.equal(res.status, 200, await res.clone().text());
+  const events = await res.json();
+  const titles = events.map((e) => e.title);
+  assert.ok(titles.includes("Stiftungsfest"), titles.join(", "));
+  const convent = events.find((e) => e.title === "Convent");
+  assert.ok(convent && convent.internal, "interner Convent fehlt für Mitglieder");
+  const site = await (await fetch(process.env.WEB_URL ?? "https://www.chattia.internal:8443/")).text();
+  assert.ok(site.includes("Stiftungsfest") && !site.includes("Convent"), "Website zeigt interne Termine");
+  console.log("✓ Termine in der App:", titles.join(", "), "– Convent nur intern, nicht auf der Website");
+}
+
+// 6) Chattia-Assistent: Antwort aus den Cloud-Dokumenten (Beispieldaten aus dev-files.sh)
 if (process.env.SKIP_ASSISTANT !== "1") {
   const conversation = await (await call("POST", "/v1/conversations", {}, auth)).json();
   const sse = await (await call("POST", `/v1/conversations/${conversation.id}/messages`, { content: "Wann ist das Stiftungsfest und was ist der Dresscode?" }, auth)).text();

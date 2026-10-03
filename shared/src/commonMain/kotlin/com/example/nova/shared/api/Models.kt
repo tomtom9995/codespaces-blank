@@ -1,5 +1,6 @@
 package com.example.nova.shared.api
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 // Datenmodelle der API. Gegenstück im Backend: backend/src/main/kotlin/com/example/nova/Api.kt – beide synchron halten.
@@ -190,3 +191,18 @@ data class FolderListing(val path: String, val entries: List<FileEntryDto>)
 
 @Serializable
 data class CreateFolderRequest(val path: String)
+
+@Serializable
+data class EventDto(
+    val id: String,
+    val title: String,
+    /** ISO-8601 (UTC). */
+    val start: String,
+    val end: String? = null,
+    val allDay: Boolean = false,
+    val location: String? = null,
+    val description: String? = null,
+    val calendar: String = "",
+    /** Nur für Mitglieder – erscheint nicht auf der Website. („internal“ ist in Swift ein Schlüsselwort.) */
+    @SerialName("internal") val isInternal: Boolean = false,
+)

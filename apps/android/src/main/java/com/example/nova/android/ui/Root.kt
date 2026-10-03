@@ -20,6 +20,7 @@ fun NovaRoot(nova: NovaApp, centralLoginCallback: MutableStateFlow<String?> = re
         var setupPending by rememberSaveable { mutableStateOf(false) }
         var showSettings by rememberSaveable { mutableStateOf(false) }
         var showFiles by rememberSaveable { mutableStateOf(false) }
+        var showEvents by rememberSaveable { mutableStateOf(false) }
 
         when (val s = session) {
             SessionState.Unknown -> CenteredLoading()
@@ -31,7 +32,8 @@ fun NovaRoot(nova: NovaApp, centralLoginCallback: MutableStateFlow<String?> = re
                     SettingsScreen(nova, s.user, onClose = { showSettings = false })
                 }
                 showFiles -> FilesScreen(nova, centralLoginCallback, onClose = { showFiles = false })
-                else -> ChatScreen(nova, s.user, onOpenSettings = { showSettings = true }, onOpenFiles = { showFiles = true })
+                showEvents -> EventsScreen(nova, onClose = { showEvents = false })
+                else -> ChatScreen(nova, s.user, onOpenSettings = { showSettings = true }, onOpenFiles = { showFiles = true }, onOpenEvents = { showEvents = true })
             }
         }
     }

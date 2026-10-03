@@ -45,7 +45,11 @@ Nächste Schritte: PDF- und Office-Dokumente (Text-Extraktion), Vektorsuche bei 
 
 - ✅ Nextcloud-Kalender **„Semesterprogramm“**: Chargen schreiben, alle Gruppen lesen, öffentlicher Abo-Link für Handy-Kalender. Eingerichtet mit `docker compose exec nextcloud bash /chattia/semesterprogramm.sh`.
 - ✅ Die **Website zeigt die öffentlichen Termine automatisch** (Shortcode `[chattia_termine]`, Plugin [`chattia-termine.php`](../../infra/hosting/wordpress/mu-plugins/chattia-termine.php)). Interne Termine (Klassifizierung *privat*/*vertraulich*, z. B. Convente) erscheinen weder im Abo-Link noch auf der Website. Gepflegt wird nur noch an einer Stelle.
-- Offen: Kalender „Hausbelegung“, Anmeldung zu Veranstaltungen.
+- ✅ Zweiter Kalender **„Semesterprogramm intern“** (Convente, Interna) nur für Mitglieder, ohne öffentlichen Link. (Nextcloud blendet als *privat* markierte Termine auch für Mitglieder aus, deshalb zwei Kalender.)
+- ✅ **Termine in der App** (`GET /v1/events`): beide Kalender mit den Rechten des Mitglieds, interne Termine markiert, Serientermine werden vom Server aufgelöst.
+- Offen: Kalender „Hausbelegung“, Anmeldung zu Veranstaltungen, Erinnerung per Push.
+
+![Termine in der App](../screenshots/android/26-termine.png)
 
 ![Website mit Terminen aus dem Kalender](../screenshots/hosting/07-website-termine.png)
 - Anmeldung zu Stiftungsfest, Kneipe, Ausflügen mit Nextcloud *Forms* oder als Funktion in der App (Zusage, Begleitung, Essenswahl). Erinnerung per Push.
