@@ -205,4 +205,11 @@ data class EventDto(
     val calendar: String = "",
     /** Nur für Mitglieder – erscheint nicht auf der Website. („internal“ ist in Swift ein Schlüsselwort.) */
     @SerialName("internal") val isInternal: Boolean = false,
+    /** Eigene Antwort: yes | no | maybe | null. */
+    val myRsvp: String? = null,
+    /** Zusagen inkl. Begleitung. */
+    val attending: Int = 0,
 )
+
+@Serializable
+data class RsvpRequest(val status: String, val guests: Int = 0)

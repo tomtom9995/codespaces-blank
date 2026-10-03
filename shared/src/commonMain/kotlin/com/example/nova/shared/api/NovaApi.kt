@@ -162,6 +162,10 @@ class NovaApi(
     @Throws(Exception::class)
     suspend fun events(days: Int = 180): List<EventDto> = send(HttpMethod.Get, "/v1/events?days=$days")
 
+    @Throws(Exception::class)
+    suspend fun rsvp(eventId: String, status: String, guests: Int): EventDto =
+        send(HttpMethod.Put, "/v1/events/rsvp?id=${eventId.encodeURLParameter()}", enc(RsvpRequest(status, guests)))
+
     // ---------- Dateien (Chattia-Cloud) ----------
 
     @Throws(Exception::class)

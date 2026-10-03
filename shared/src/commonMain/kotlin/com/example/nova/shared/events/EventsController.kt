@@ -37,4 +37,18 @@ class EventsController(private val api: NovaApi, private val scope: CoroutineSco
             }
         }
     }
+
+    /** Zu-/Absage: yes | no | maybe, [guests] Begleitpersonen (nur bei Zusage). */
+    fun rsvp(event: EventDto, status: String, guests: Int = 0) {
+        scope.launch {
+            try {
+                val updated = api.rsvp(event.id, status, guests)
+                _state.update { s -> s.copy(events = s.events.map { if (it.id == updated.id) updated else it }, error = null) }
+            } catch (e: NovaApiException) {
+                _state.update { it.copy(error = e.message) }
+            } catch (e: Exception) {
+                _state.update { it.copy(error = "Keine Verbindung. Bitte versuch es erneut.") }
+            }
+        }
+    }
 }

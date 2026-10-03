@@ -1,6 +1,7 @@
 package com.example.nova.android.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +19,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.EventBusy
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -32,6 +35,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -57,6 +63,7 @@ fun EventsScreen(nova: NovaApp, onClose: () -> Unit) {
     val t = LocalTexts.current
     val state by nova.events.state.collectAsState()
     val context = LocalContext.current
+    var selected by remember { mutableStateOf<EventDto?>(null) }
     LaunchedEffect(Unit) { nova.events.refresh() }
     BackHandler { onClose() }
 
@@ -93,19 +100,24 @@ fun EventsScreen(nova: NovaApp, onClose: () -> Unit) {
                             item(key = month) {
                                 Text(month.replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 16.dp, bottom = 8.dp))
                             }
-                            items(events, key = { it.id }) { EventRow(it, t("events.internal"), t("events.allDay")) }
+                            items(events, key = { it.id }) { event -> EventRow(event, t, onClick = { selected = event }) }
                         }
                     }
                 }
             }
         }
     }
+    selected?.let { event ->
+        RsvpDialog(event, t, onAnswer = { status, guests -> nova.events.rsvp(event, status, guests); selected = null }, onDismiss = { selected = null })
+    }
 }
 
 @Composable
-private fun EventRow(event: EventDto, internalLabel: String, allDayLabel: String) {
+private fun EventRow(event: EventDto, t: Texts, onClick: () -> Unit) {
+    val internalLabel = t("events.internal")
+    val allDayLabel = t("events.allDay")
     val start = Instant.parse(event.start).atZone(ZONE)
-    Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
         Surface(color = if (event.isInternal) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(12.dp), modifier = Modifier.size(56.dp)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                 Text(start.format(WEEKDAY).trimEnd('.'), style = MaterialTheme.typography.labelMedium)
@@ -125,6 +137,37 @@ private fun EventRow(event: EventDto, internalLabel: String, allDayLabel: String
             }
             val time = if (event.allDay) allDayLabel else start.format(TIME) + " Uhr"
             Text(listOfNotNull(time, event.location).joinToString(" · "), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            rsvpLine(event, t)?.let { (text, color) -> Text(text, style = MaterialTheme.typography.labelLarge, color = color) }
         }
     }
+}
+
+@Composable
+private fun rsvpLine(event: EventDto, t: Texts): Pair<String, androidx.compose.ui.graphics.Color>? {
+    val count = if (event.attending > 0) " · " + t("events.rsvp.attending", "count" to event.attending.toString()) else ""
+    return when (event.myRsvp) {
+        "yes" -> "✓ " + t("events.rsvp.statusYes") + count to MaterialTheme.colorScheme.primary
+        "maybe" -> "? " + t("events.rsvp.statusMaybe") + count to MaterialTheme.colorScheme.onSurfaceVariant
+        "no" -> "✕ " + t("events.rsvp.statusNo") + count to MaterialTheme.colorScheme.onSurfaceVariant
+        else -> if (count.isNotEmpty()) count.removePrefix(" · ") to MaterialTheme.colorScheme.onSurfaceVariant else null
+    }
+}
+
+@Composable
+private fun RsvpDialog(event: EventDto, t: Texts, onAnswer: (status: String, guests: Int) -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(event.title) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (event.attending > 0) Text(t("events.rsvp.attending", "count" to event.attending.toString()), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                PrimaryButton(t("events.rsvp.yes"), onClick = { onAnswer("yes", 0) })
+                SecondaryButton(t("events.rsvp.guest"), onClick = { onAnswer("yes", 1) })
+                SecondaryButton(t("events.rsvp.maybe"), onClick = { onAnswer("maybe", 0) })
+                QuietButton(t("events.rsvp.no"), onClick = { onAnswer("no", 0) })
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text(t("files.cancel")) } },
+    )
 }

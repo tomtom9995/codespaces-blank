@@ -47,7 +47,10 @@ Textdokumente (`.md`, `.txt`) aus den Ordnern in `KNOWLEDGE_FOLDERS` werden **mi
 - ✅ Die **Website zeigt die öffentlichen Termine automatisch** (Shortcode `[chattia_termine]`, Plugin [`chattia-termine.php`](../../infra/hosting/wordpress/mu-plugins/chattia-termine.php)). Interne Termine (Klassifizierung *privat*/*vertraulich*, z. B. Convente) erscheinen weder im Abo-Link noch auf der Website. Gepflegt wird nur noch an einer Stelle.
 - ✅ Zweiter Kalender **„Semesterprogramm intern“** (Convente, Interna) nur für Mitglieder, ohne öffentlichen Link. (Nextcloud blendet als *privat* markierte Termine auch für Mitglieder aus, deshalb zwei Kalender.)
 - ✅ **Termine in der App** (`GET /v1/events`): beide Kalender mit den Rechten des Mitglieds, interne Termine markiert, Serientermine werden vom Server aufgelöst.
-- Offen: Kalender „Hausbelegung“, Anmeldung zu Veranstaltungen, Erinnerung per Push.
+- ✅ **Zu- und Absagen** in der App (auch „mit Begleitung“), Zahl der Zusagen am Termin. Die Teilnehmerliste sehen nur Chargen und AHV-Vorstand (`GET /v1/events/rsvps`), etwa für die Planung von Essen und Plätzen.
+- Offen: Kalender „Hausbelegung“, Erinnerung per Push, Export der Teilnehmerliste.
+
+![Zusage in der App](../screenshots/android/28-zugesagt.png)
 
 ![Termine in der App](../screenshots/android/26-termine.png)
 

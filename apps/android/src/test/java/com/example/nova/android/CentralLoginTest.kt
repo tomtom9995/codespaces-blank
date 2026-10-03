@@ -145,6 +145,14 @@ class CentralLoginTest {
         waitForText("Stiftungsfest")
         waitForText("intern")
         shot("26-termine")
+        compose.onNodeWithText("Stiftungsfest").performClick()
+        waitForText("Mit Begleitung")
+        shot("27-zusage-dialog")
+        compose.onNodeWithText("Mit Begleitung").performClick()
+        waitForText("Du hast zugesagt")
+        shot("28-zugesagt")
+        runBlocking { nova.api.rsvp(nova.events.state.value.events.first { it.title == "Stiftungsfest" }.id, "no", 0) }
+        nova.events.refresh()
         compose.onNodeWithContentDescription("Zurück").performClick()
         compose.waitUntil(10_000) { compose.onAllNodesWithContentDescription("Menü").fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithContentDescription("Menü").performClick()

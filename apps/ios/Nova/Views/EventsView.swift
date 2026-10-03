@@ -50,7 +50,16 @@ struct EventsView: View {
             List {
                 ForEach(months, id: \.0) { month, events in
                     Section(month) {
-                        ForEach(events, id: \.id) { row($0) }
+                        ForEach(events, id: \.id) { event in
+                            row(event)
+                                .contextMenu { rsvpButtons(event) }
+                                .swipeActions(edge: .leading) {
+                                    Button(model.t("events.rsvp.yes")) { model.nova.events.rsvp(event: event, status: "yes", guests: 0) }.tint(.green)
+                                }
+                                .swipeActions(edge: .trailing) {
+                                    Button(model.t("events.rsvp.no")) { model.nova.events.rsvp(event: event, status: "no", guests: 0) }.tint(.gray)
+                                }
+                        }
                     }
                 }
             }
@@ -91,8 +100,31 @@ struct EventsView: View {
                 Text([event.allDay ? model.t("events.allDay") : Self.time.string(from: start) + " Uhr", event.location]
                     .compactMap { $0 }.joined(separator: " · "))
                     .font(.subheadline).foregroundStyle(.secondary)
+                if let line = rsvpLine(event) {
+                    Text(line).font(.subheadline.weight(.semibold))
+                        .foregroundStyle(event.myRsvp == "yes" ? Color.brand : .secondary)
+                }
             }
         }
+    }
+
+    @ViewBuilder private func rsvpButtons(_ event: EventDto) -> some View {
+        Button { model.nova.events.rsvp(event: event, status: "yes", guests: 0) } label: { Label(model.t("events.rsvp.yes"), systemImage: "checkmark.circle") }
+        Button { model.nova.events.rsvp(event: event, status: "yes", guests: 1) } label: { Label(model.t("events.rsvp.guest"), systemImage: "person.2") }
+        Button { model.nova.events.rsvp(event: event, status: "maybe", guests: 0) } label: { Label(model.t("events.rsvp.maybe"), systemImage: "questionmark.circle") }
+        Button(role: .destructive) { model.nova.events.rsvp(event: event, status: "no", guests: 0) } label: { Label(model.t("events.rsvp.no"), systemImage: "xmark.circle") }
+    }
+
+    private func rsvpLine(_ event: EventDto) -> String? {
+        let count = event.attending > 0 ? model.t("events.rsvp.attending", ["count": "\(event.attending)"]) : nil
+        let status: String? = switch event.myRsvp {
+        case "yes": "✓ " + model.t("events.rsvp.statusYes")
+        case "maybe": "? " + model.t("events.rsvp.statusMaybe")
+        case "no": "✕ " + model.t("events.rsvp.statusNo")
+        default: nil
+        }
+        let parts = [status, count].compactMap { $0 }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 
     private func date(_ event: EventDto) -> Date {

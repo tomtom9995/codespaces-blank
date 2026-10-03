@@ -146,5 +146,13 @@
   {"key": "events.empty", "category": "events", "text": "Keine Termine in den nächsten Monaten."},
   {"key": "events.internal", "category": "events", "text": "intern"},
   {"key": "events.allDay", "category": "events", "text": "ganztägig"},
-  {"key": "events.connectBody", "category": "events", "text": "Das Semesterprogramm liegt in der Cloud des Corps. Melde dich einmal mit deinem Chattia-Konto an, dann siehst du alle Termine auch hier."}
+  {"key": "events.connectBody", "category": "events", "text": "Das Semesterprogramm liegt in der Cloud des Corps. Melde dich einmal mit deinem Chattia-Konto an, dann siehst du alle Termine auch hier."},
+  {"key": "events.rsvp.yes", "category": "events", "text": "Zusagen"},
+  {"key": "events.rsvp.maybe", "category": "events", "text": "Vielleicht"},
+  {"key": "events.rsvp.no", "category": "events", "text": "Absagen"},
+  {"key": "events.rsvp.guest", "category": "events", "text": "Mit Begleitung"},
+  {"key": "events.rsvp.statusYes", "category": "events", "text": "Du hast zugesagt"},
+  {"key": "events.rsvp.statusMaybe", "category": "events", "text": "Du bist unentschlossen"},
+  {"key": "events.rsvp.statusNo", "category": "events", "text": "Du hast abgesagt"},
+  {"key": "events.rsvp.attending", "category": "events", "text": "{count} Zusagen", "placeholders": ["count"]}
 ]
