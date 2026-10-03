@@ -1,0 +1,72 @@
+[
+  {
+    "key": "workspace.owner",
+    "scope": "workspace",
+    "name": "Inhaber:in",
+    "description": "Hat alle Rechte: Abrechnung, Mitglieder, Richtlinien und das Löschen des Workspaces. Kritische Änderungen brauchen eine Zusatzbestätigung.",
+    "permissions": ["chat:write", "project:manage", "member:manage", "role:assign:admin", "policy:manage", "billing:manage", "workspace:delete", "ownership:transfer"]
+  },
+  {
+    "key": "workspace.admin",
+    "scope": "workspace",
+    "name": "Admin",
+    "description": "Kann Mitglieder einladen und entfernen, Rollen bis Admin vergeben sowie Assistenten und Richtlinien verwalten.",
+    "permissions": ["chat:write", "project:manage", "member:manage", "role:assign:admin", "policy:manage"]
+  },
+  {
+    "key": "workspace.member",
+    "scope": "workspace",
+    "name": "Mitglied",
+    "description": "Kann chatten, eigene Projekte anlegen und geteilte Assistenten und Dateien nutzen.",
+    "permissions": ["chat:write", "project:own", "assistant:use", "file:upload"]
+  },
+  {
+    "key": "workspace.guest",
+    "scope": "workspace",
+    "name": "Gast",
+    "description": "Kann geteilte Chats und Projekte lesen und kommentieren.",
+    "permissions": ["shared:read", "shared:comment"]
+  },
+  {
+    "key": "internal.support",
+    "scope": "internal",
+    "name": "Support",
+    "description": "Sieht Kontodaten und Metadaten, sendet Identitätsbestätigungen an die App und kann eine Wiederherstellung anstoßen. Sieht keine Chat-Inhalte und kann keine Sicherheitsmerkmale ändern.",
+    "permissions": ["account:read-metadata", "identity:request-confirmation", "recovery:initiate"]
+  },
+  {
+    "key": "internal.moderation",
+    "scope": "internal",
+    "name": "Moderation",
+    "description": "Sieht und bewertet ausschließlich gemeldete Inhalte.",
+    "permissions": ["report:read", "report:decide"]
+  },
+  {
+    "key": "internal.editor",
+    "scope": "internal",
+    "name": "Redaktion",
+    "description": "Entwirft und veröffentlicht UI-Texte und Onboarding im CMS. Sicherheitstexte, E-Mails, SMS und Push-Nachrichten nur als Entwurf.",
+    "permissions": ["cms:ui-text:publish", "cms:onboarding:publish", "cms:messages:draft"]
+  },
+  {
+    "key": "internal.securityApprover",
+    "scope": "internal",
+    "name": "Sicherheitsfreigabe",
+    "description": "Gibt Sicherheitstexte sowie E-Mail-, SMS-, Anruf- und Push-Vorlagen im CMS frei.",
+    "permissions": ["cms:messages:publish", "cms:security-text:publish"]
+  },
+  {
+    "key": "internal.platformAdmin",
+    "scope": "internal",
+    "name": "Plattform-Admin",
+    "description": "Verwaltet die Infrastruktur, nur mit zeitlich begrenztem, begründetem Zugriff und Hardware-Schlüssel.",
+    "permissions": ["infra:manage:jit"]
+  },
+  {
+    "key": "internal.breakGlass",
+    "scope": "internal",
+    "name": "Notfallkonto",
+    "description": "Versiegeltes Konto nur für Notfälle. Jede Anmeldung alarmiert alle Admins.",
+    "permissions": ["*"]
+  }
+]

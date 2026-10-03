@@ -1,0 +1,8 @@
+[
+  {
+    "key": "voice.verifyCode",
+    "description": "Automatische Ansage, wenn statt SMS ein Anruf gewählt wurde. Der Anruf kommt immer von der in der App angezeigten Nummer.",
+    "text": "Hallo, hier ist die automatische Ansage von {appName}. Du hast einen Code angefordert. Dein Code lautet: {codeSpoken}. Ich wiederhole: {codeSpoken}. Gib diesen Code nur selbst in der App ein und nenne ihn niemandem, auch nicht unserem Support. Bei {appName} ruft dich nie ein Mensch an, um nach Codes zu fragen. Auf Wiederhören.",
+    "placeholders": ["codeSpoken"]
+  }
+]

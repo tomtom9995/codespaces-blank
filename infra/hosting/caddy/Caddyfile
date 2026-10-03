@@ -1,0 +1,45 @@
+# Sites kommen aus der .env: lokal "https://cloud.chattia.internal:8443", in Produktion "cloud.example.org" (automatisch HTTPS).
+{
+	admin off
+}
+
+(security_headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+}
+
+{$AUTH_SITE} {
+	import security_headers
+	# Admin-Konsole von Keycloak nur aus internen Netzen bzw. über VPN/IAP
+	@admin path /admin*
+	handle @admin {
+		@outside not remote_ip private_ranges
+		respond @outside "Nicht verfügbar" 403
+		reverse_proxy keycloak:8080
+	}
+	reverse_proxy keycloak:8080
+}
+
+{$CLOUD_SITE} {
+	import security_headers
+	request_body {
+		max_size 16GB
+	}
+	redir /.well-known/carddav /remote.php/dav/ 301
+	redir /.well-known/caldav /remote.php/dav/ 301
+	reverse_proxy nextcloud:80
+}
+
+{$WEB_SITE} {
+	import security_headers
+	reverse_proxy wordpress:80
+}
+
+{$API_SITE} {
+	import security_headers
+	reverse_proxy {$NOVA_UPSTREAM}
+}

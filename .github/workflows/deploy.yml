@@ -1,0 +1,40 @@
+name: Deploy (Google Cloud Run)
+
+# Läuft erst, wenn in den Repository-Variablen GCP_PROJECT_ID usw. gesetzt sind (Settings › Variables).
+# Anmeldung bei GCP per Workload Identity Federation – keine Schlüsseldateien.
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    if: vars.GCP_PROJECT_ID != ''
+    runs-on: ubuntu-latest
+    # main → staging automatisch; Tags → prod mit Freigabe durch eine zweite Person (GitHub Environment „prod“).
+    environment: ${{ startsWith(github.ref, 'refs/tags/') && 'prod' || 'staging' }}
+    env:
+      REGION: ${{ vars.GCP_REGION || 'europe-west3' }}
+      REPO: ${{ vars.GCP_REGION || 'europe-west3' }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/nova
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - run: gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
+      - name: Images bauen und hochladen
+        run: |
+          docker build -f backend/Dockerfile -t "$REPO/backend:${GITHUB_SHA}" .
+          docker build -f cms/strapi/Dockerfile -t "$REPO/strapi:${GITHUB_SHA}" cms
+          docker push "$REPO/backend:${GITHUB_SHA}"
+          docker push "$REPO/strapi:${GITHUB_SHA}"
+      - name: Cloud Run aktualisieren (Geheimnisse kommen aus dem Secret Manager)
+        run: |
+          gcloud run deploy nova-backend --image "$REPO/backend:${GITHUB_SHA}" --region "$REGION" --allow-unauthenticated --quiet
+          gcloud run deploy nova-strapi --image "$REPO/strapi:${GITHUB_SHA}" --region "$REGION" --no-allow-unauthenticated --quiet

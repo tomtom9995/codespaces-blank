@@ -1,0 +1,27 @@
+name: Texte prüfen
+
+on:
+  pull_request:
+    paths:
+      - "cms/content/**"
+      - "cms/scripts/**"
+      - ".github/workflows/content.yml"
+  push:
+    branches: [main]
+    paths:
+      - "cms/content/**"
+      - "cms/scripts/**"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Platzhalter, Links und SMS-Zeichensatz prüfen
+        run: node cms/scripts/validate-content.mjs

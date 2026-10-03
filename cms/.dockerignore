@@ -1,0 +1,4 @@
+strapi/node_modules
+strapi/.tmp
+strapi/dist
+strapi/.env

@@ -1,0 +1,88 @@
+# Lokaler Gesamtstack: docker compose up -d --build
+#   Backend-API   http://localhost:8080
+#   Strapi (CMS)  http://localhost:1337/admin
+#   Mailpit       http://localhost:8025   (alle E-Mails, SMS und Anrufe landen hier)
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: nova
+      POSTGRES_PASSWORD: nova
+      POSTGRES_DB: nova
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nova"]
+      interval: 3s
+      retries: 30
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"
+
+  strapi:
+    build:
+      context: ./cms
+      dockerfile: strapi/Dockerfile
+    environment:
+      DATABASE_CLIENT: postgres
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: strapi
+      DATABASE_USERNAME: nova
+      DATABASE_PASSWORD: nova
+      APP_KEYS: ${STRAPI_APP_KEYS:-devKeyA,devKeyB}
+      API_TOKEN_SALT: ${STRAPI_API_TOKEN_SALT:-dev-api-token-salt}
+      ADMIN_JWT_SECRET: ${STRAPI_ADMIN_JWT_SECRET:-dev-admin-jwt-secret}
+      TRANSFER_TOKEN_SALT: ${STRAPI_TRANSFER_TOKEN_SALT:-dev-transfer-salt}
+      JWT_SECRET: ${STRAPI_JWT_SECRET:-dev-jwt-secret}
+      ENCRYPTION_KEY: ${STRAPI_ENCRYPTION_KEY:-dev-encryption-key-32-characters!}
+      # Nur lokal: Lesezugriff ohne Token im internen Docker-Netz + Admin-Konto anlegen.
+      STRAPI_PUBLIC_READ: "true"
+      STRAPI_ADMIN_EMAIL: ${STRAPI_ADMIN_EMAIL:-admin@example.com}
+      STRAPI_ADMIN_PASSWORD: ${STRAPI_ADMIN_PASSWORD:-NovaAdmin2026!}
+      BACKEND_INVALIDATE_URL: http://backend:8080/internal/content/invalidate
+      STRAPI_WEBHOOK_SECRET: ${STRAPI_WEBHOOK_SECRET:-dev-webhook-secret}
+    ports:
+      - "1337:1337"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DEV_MODE: "true"
+      PUBLIC_BASE_URL: http://localhost:8080
+      DATABASE_URL: jdbc:postgresql://postgres:5432/nova
+      DATABASE_USER: nova
+      DATABASE_PASSWORD: nova
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      STRAPI_URL: http://strapi:1337
+      STRAPI_WEBHOOK_SECRET: ${STRAPI_WEBHOOK_SECRET:-dev-webhook-secret}
+      # KI: ohne Schlüssel läuft der Testmodus. Für Claude ANTHROPIC_API_KEY in .env setzen.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-opus-5-5}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODELS: ${OPENAI_MODELS:-}
+      GOOGLE_CLIENT_IDS: ${GOOGLE_CLIENT_IDS:-}
+      OIDC_ISSUER: ${OIDC_ISSUER:-}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-}
+      NEXTCLOUD_URL: ${NEXTCLOUD_URL:-}
+      APPLE_CLIENT_IDS: ${APPLE_CLIENT_IDS:-}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+
+volumes:
+  pg-data:

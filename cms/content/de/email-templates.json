@@ -1,0 +1,375 @@
+[
+  {
+    "key": "email.contact.doubleOptIn",
+    "category": "transactional",
+    "trigger": "contact.created (Landingpage, Warteliste, Empfehlung)",
+    "subject": "Bitte bestätige deine E-Mail-Adresse",
+    "preheader": "Ein Klick, dann halten wir dich über {appName} auf dem Laufenden.",
+    "body": [
+      "Hallo,",
+      "schön, dass du dich für {appName} interessierst! Bitte bestätige kurz, dass diese E-Mail-Adresse dir gehört. Erst danach schicken wir dir Neuigkeiten und deine Einladung.",
+      "Du hast dich nicht eingetragen? Dann ignoriere diese E-Mail einfach. Ohne Bestätigung passiert nichts."
+    ],
+    "ctaLabel": "E-Mail-Adresse bestätigen",
+    "ctaUrl": "{confirmUrl}",
+    "placeholders": [
+      "confirmUrl"
+    ]
+  },
+  {
+    "key": "email.account.verifyEmail",
+    "category": "transactional",
+    "trigger": "auth.email_code_requested",
+    "subject": "{code} ist dein Bestätigungscode für {appName}",
+    "preheader": "Gültig für {validMinutes} Minuten. Gib den Code nur in der {appName}-App ein.",
+    "body": [
+      "Hallo,",
+      "gib diesen Code in der {appName}-App ein, um deine E-Mail-Adresse zu bestätigen:",
+      "## {code}",
+      "Der Code ist {validMinutes} Minuten gültig.",
+      "**Wichtig:** Niemand von {appName} wird dich je nach diesem Code fragen, auch nicht unser Support. Wenn dich jemand danach fragt, ist es ein Betrugsversuch.",
+      "Du hast keinen Code angefordert? Dann kannst du diese E-Mail ignorieren. Dein Konto bleibt geschützt."
+    ],
+    "ctaLabel": null,
+    "ctaUrl": null,
+    "placeholders": [
+      "code",
+      "validMinutes"
+    ]
+  },
+  {
+    "key": "email.onboarding.welcome",
+    "category": "transactional",
+    "trigger": "user.created",
+    "subject": "Willkommen bei {appName}!",
+    "preheader": "Drei Dinge, mit denen du direkt loslegen kannst.",
+    "body": [
+      "Hallo {firstName},",
+      "dein Konto ist eingerichtet, schön, dass du da bist! {appName} ist dein KI-Assistent zum Schreiben, Recherchieren, Lernen und Planen.",
+      "**So legst du direkt los:**",
+      "1. **Frag einfach drauflos.** Je genauer du beschreibst, was du brauchst, desto besser wird die Antwort.\n2. **Lade eine Datei oder ein Foto hoch.** {appName} fasst Dokumente zusammen, liest Tabellen und erklärt Bilder.\n3. **Sprich statt zu tippen.** Tippe auf das Mikrofon und stell deine Frage per Sprache.",
+      "**Dein Konto ist geschützt.** Du meldest dich mit {loginMethod} an. In den nächsten Tagen zeigen wir dir, wie du es mit einem Passkey noch sicherer machst. Das dauert nur eine Minute.",
+      "Viel Freude beim Ausprobieren!\nDein {appName}-Team"
+    ],
+    "ctaLabel": "App öffnen",
+    "ctaUrl": "{appUrl}",
+    "placeholders": [
+      "firstName",
+      "loginMethod",
+      "appUrl"
+    ]
+  },
+  {
+    "key": "email.onboarding.day1Tips",
+    "category": "marketing",
+    "trigger": "user.created + 1 Tag, nur mit Einwilligung",
+    "subject": "3 Tricks für bessere Antworten",
+    "preheader": "Kleine Änderungen an deinen Fragen, große Wirkung.",
+    "body": [
+      "Hallo {firstName},",
+      "mit ein paar Kniffen holst du deutlich mehr aus {appName} heraus:",
+      "**1. Gib eine Rolle vor.** „Antworte wie eine erfahrene Steuerberaterin“ liefert präzisere Antworten als eine allgemeine Frage.",
+      "**2. Nenne das Format.** „Als Tabelle“, „in drei Stichpunkten“ oder „als E-Mail an meinen Vermieter“.",
+      "**3. Frag nach.** Wenn dir etwas nicht passt, sag es einfach: „kürzer“, „förmlicher“ oder „erklär das einem Zehnjährigen“.",
+      "Und ein ehrlicher Hinweis: KI kann sich irren. Prüfe wichtige Fakten, Zahlen und Quellen, besonders bei Gesundheit, Recht und Finanzen.",
+      "Dein {appName}-Team"
+    ],
+    "ctaLabel": "Jetzt ausprobieren",
+    "ctaUrl": "{appUrl}",
+    "placeholders": [
+      "firstName",
+      "appUrl"
+    ]
+  },
+  {
+    "key": "email.onboarding.day3SecurityCheck",
+    "category": "security",
+    "trigger": "user.created + 3 Tage, nur wenn Sicherheitscheck unvollständig",
+    "subject": "Dein Sicherheitscheck: 1 Minute für ein sicheres Konto",
+    "preheader": "Passkey, Wiederherstellungscodes und dein persönlicher Anti-Phishing-Code.",
+    "body": [
+      "Hallo {firstName},",
+      "Betrüger versuchen immer häufiger, mit gefälschten E-Mails, SMS oder Anrufen an Zugangsdaten zu kommen. Mit drei kurzen Schritten bist du davor gut geschützt:",
+      "**1. Passkey einrichten:** Anmelden mit Face ID oder Fingerabdruck. Ein Passkey funktioniert nur in der echten {appName}-App und kann auf gefälschten Seiten nicht abgegriffen werden.",
+      "**2. Wiederherstellungscodes sichern:** Damit kommst du auch wieder in dein Konto, wenn du dein Handy verlierst.",
+      "**3. Anti-Phishing-Code festlegen:** Ein Wort deiner Wahl, das in jeder echten E-Mail von uns steht. Fehlt es, stammt die E-Mail nicht von uns.",
+      "Du findest alles in der App unter **Einstellungen › Sicherheit › Sicherheitscheck**.",
+      "Dein {appName}-Team"
+    ],
+    "ctaLabel": "Sicherheitscheck starten",
+    "ctaUrl": "{securityCheckUrl}",
+    "placeholders": [
+      "firstName",
+      "securityCheckUrl"
+    ]
+  },
+  {
+    "key": "email.onboarding.day7Features",
+    "category": "marketing",
+    "trigger": "user.created + 7 Tage, nur mit Einwilligung",
+    "subject": "Schon entdeckt? Projekte, eigene Anweisungen und Sprachmodus",
+    "preheader": "Mehr Ordnung in deinen Chats und Antworten zum Zuhören.",
+    "body": [
+      "Hallo {firstName},",
+      "du nutzt {appName} jetzt seit einer Woche. Zeit für ein paar Funktionen, die vielen erst später auffallen:",
+      "**Projekte:** Bündle Chats, Dateien und Anweisungen zu einem Thema, zum Beispiel „Umzug“, „Bachelorarbeit“ oder „Kundenangebote“.",
+      "**Eigene Anweisungen:** Sag {appName} einmal, wie es antworten soll, etwa „immer kurz und mit Beispielen“.",
+      "**Sprachmodus:** Unterhalte dich mit {appName}, während du kochst, spazieren gehst oder unterwegs bist.",
+      "Dein {appName}-Team"
+    ],
+    "ctaLabel": "Funktionen ansehen",
+    "ctaUrl": "{appUrl}",
+    "placeholders": [
+      "firstName",
+      "appUrl"
+    ]
+  },
+  {
+    "key": "email.onboarding.day14Feedback",
+    "category": "marketing",
+    "trigger": "user.created + 14 Tage, nur mit Einwilligung und mindestens 3 Chats",
+    "subject": "Wie gefällt dir {appName}?",
+    "preheader": "Zwei Minuten, die uns sehr helfen.",
+    "body": [
+      "Hallo {firstName},",
+      "seit zwei Wochen bist du dabei, und wir würden gern wissen, wie es dir gefällt. Was hilft dir? Was nervt? Was fehlt?",
+      "Antworte einfach auf diese E-Mail oder nimm dir zwei Minuten für unsere kurze Umfrage. Wir lesen jede Rückmeldung.",
+      "Danke dir!\nDein {appName}-Team"
+    ],
+    "ctaLabel": "Zur Umfrage",
+    "ctaUrl": "{surveyUrl}",
+    "placeholders": [
+      "firstName",
+      "surveyUrl"
+    ]
+  },
+  {
+    "key": "email.security.newLogin",
+    "category": "security",
+    "trigger": "auth.new_device_login",
+    "subject": "Neue Anmeldung bei {appName}",
+    "preheader": "{deviceShort} · {location}",
+    "body": [
+      "Hallo {firstName},",
+      "dein Konto wurde gerade auf einem neuen Gerät angemeldet:",
+      "**Gerät:** {device}\n**Ort (ungefähr):** {location}\n**Verbindung:** {connectionType}\n**Zeitpunkt:** {dateTime}",
+      "**Das warst du?** Dann ist alles in Ordnung. Du musst nichts tun.",
+      "**Das warst du nicht?** Tippe auf den Button unten. Wir melden dann sofort alle fremden Geräte ab und fragen bei der nächsten Anmeldung nach deinem Passkey oder zweiten Faktor. Alternativ in der App: **Einstellungen › Sicherheit › Geräte**.",
+      "Der Ort wird anhand der IP-Adresse geschätzt und kann ungenau sein, zum Beispiel bei mobilem Internet oder VPN."
+    ],
+    "ctaLabel": "Das war ich nicht",
+    "ctaUrl": "{notMeUrl}",
+    "placeholders": [
+      "firstName",
+      "device",
+      "deviceShort",
+      "location",
+      "connectionType",
+      "dateTime",
+      "notMeUrl"
+    ]
+  },
+  {
+    "key": "email.security.mfaEnabled",
+    "category": "security",
+    "trigger": "security.factor_added",
+    "subject": "Zusätzlicher Schutz für dein Konto ist aktiv",
+    "preheader": "Dein {appName}-Konto ist jetzt besser geschützt.",
+    "body": [
+      "Hallo {firstName},",
+      "du hast gerade **{factorName}** als zusätzlichen Schutz für dein Konto eingerichtet. Ab sofort fragen wir bei neuen Geräten und wichtigen Änderungen danach.",
+      "**Gerät:** {device}\n**Zeitpunkt:** {dateTime}",
+      "Du hast das nicht selbst eingerichtet? Dann tippe auf den Button unten. Wir sperren dein Konto vorsorglich, bis du dich wieder sicher angemeldet hast."
+    ],
+    "ctaLabel": "Das war ich nicht",
+    "ctaUrl": "{notMeUrl}",
+    "placeholders": [
+      "firstName",
+      "factorName",
+      "device",
+      "dateTime",
+      "notMeUrl"
+    ]
+  },
+  {
+    "key": "email.security.factorChanged",
+    "category": "security",
+    "trigger": "security.factor_changed / security.factor_removed",
+    "subject": "Sicherheitseinstellung geändert: {changeSummary}",
+    "preheader": "Bitte prüfe, ob du das warst.",
+    "body": [
+      "Hallo {firstName},",
+      "an deinem Konto wurde gerade folgende Sicherheitseinstellung geändert:",
+      "**Änderung:** {changeSummary}\n**Gerät:** {device}\n**Zeitpunkt:** {dateTime}",
+      "Warst du das nicht? Tippe auf den Button unten. Wir machen die Änderung dann rückgängig und sperren dein Konto vorsorglich, bis du dich wieder sicher angemeldet hast."
+    ],
+    "ctaLabel": "Das war ich nicht",
+    "ctaUrl": "{notMeUrl}",
+    "placeholders": [
+      "firstName",
+      "changeSummary",
+      "device",
+      "dateTime",
+      "notMeUrl"
+    ]
+  },
+  {
+    "key": "email.security.emailChangeOldAddress",
+    "category": "security",
+    "trigger": "account.email_change_requested (an die bisherige Adresse)",
+    "subject": "Deine E-Mail-Adresse bei {appName} wird geändert",
+    "preheader": "Die Änderung wird am {effectiveDate} wirksam.",
+    "body": [
+      "Hallo {firstName},",
+      "für dein {appName}-Konto wurde eine neue E-Mail-Adresse angegeben: **{newEmailMasked}**.",
+      "Zu deinem Schutz wird die Änderung erst am **{effectiveDate}** wirksam. Bis dahin bekommst du alle Sicherheitsmeldungen weiterhin an diese Adresse.",
+      "Du hast das nicht veranlasst? Dann stoppe die Änderung mit dem Button unten. Wir brechen sie sofort ab und sichern dein Konto."
+    ],
+    "ctaLabel": "Änderung stoppen",
+    "ctaUrl": "{cancelUrl}",
+    "placeholders": [
+      "firstName",
+      "newEmailMasked",
+      "effectiveDate",
+      "cancelUrl"
+    ]
+  },
+  {
+    "key": "email.security.recoveryStarted",
+    "category": "security",
+    "trigger": "account.recovery_started (an alle hinterlegten Adressen)",
+    "subject": "Wiederherstellung deines {appName}-Kontos gestartet",
+    "preheader": "Wenn du das nicht warst, stoppe sie jetzt.",
+    "body": [
+      "Hallo {firstName},",
+      "für dein Konto wurde eine Wiederherstellung angefordert. Das passiert, wenn jemand angibt, keinen Zugriff mehr auf seine Anmeldemethoden zu haben.",
+      "**Angefordert von:** {device}, {location}\n**Zeitpunkt:** {dateTime}\n**Wird wirksam am:** {effectiveDate}",
+      "Zu deinem Schutz gilt eine Wartezeit von {waitingHours} Stunden. In dieser Zeit informieren wir dich über alle hinterlegten Kanäle.",
+      "**Du warst das nicht?** Dann stoppe die Wiederherstellung jetzt. Betrüger geben sich manchmal am Telefon als Support aus und wollen dich zu einer Bestätigung überreden. Wir rufen dich deswegen niemals an."
+    ],
+    "ctaLabel": "Wiederherstellung stoppen",
+    "ctaUrl": "{cancelUrl}",
+    "placeholders": [
+      "firstName",
+      "device",
+      "location",
+      "dateTime",
+      "effectiveDate",
+      "waitingHours",
+      "cancelUrl"
+    ]
+  },
+  {
+    "key": "email.security.loginBlocked",
+    "category": "security",
+    "trigger": "auth.login_blocked (Risikowert ab 60)",
+    "subject": "Wir haben eine Anmeldung bei {appName} gestoppt",
+    "preheader": "{device} · {location}",
+    "body": [
+      "Hallo {firstName},",
+      "jemand hat versucht, sich bei deinem Konto anzumelden. Die Anmeldung wirkte ungewöhnlich, deshalb haben wir sie zu deinem Schutz gestoppt:",
+      "**Gerät:** {device}\n**Ort (ungefähr):** {location}\n**Zeitpunkt:** {dateTime}",
+      "**Das warst du?** Versuch es auf einem Gerät, das du schon benutzt hast, oder ohne VPN. Klappt es nicht, starte in der App die Kontowiederherstellung.",
+      "**Das warst du nicht?** Dann ist dein Konto weiterhin geschützt, du musst nichts tun. Diese E-Mail enthält bewusst keinen Link."
+    ],
+    "ctaLabel": null,
+    "ctaUrl": null,
+    "placeholders": [
+      "firstName",
+      "device",
+      "location",
+      "dateTime"
+    ]
+  },
+  {
+    "key": "email.security.accountLocked",
+    "category": "security",
+    "trigger": "security.account_locked",
+    "subject": "Wir haben dein {appName}-Konto vorsorglich gesperrt",
+    "preheader": "Ungewöhnliche Aktivität erkannt. So entsperrst du es wieder.",
+    "body": [
+      "Hallo {firstName},",
+      "wir haben ungewöhnliche Anmeldeversuche bei deinem Konto festgestellt und es deshalb vorsorglich gesperrt. Deine Chats und Daten sind sicher.",
+      "**So entsperrst du dein Konto:** Öffne die {appName}-App auf einem Gerät, das du schon früher benutzt hast, und melde dich mit deinem Passkey oder deinem zweiten Faktor an.",
+      "Kein bekanntes Gerät zur Hand? Dann starte in der App die Kontowiederherstellung, am schnellsten mit deinen Wiederherstellungscodes.",
+      "**Diese E-Mail enthält bewusst keinen Link.** Wenn du eine E-Mail mit einem Link zum „Entsperren“ bekommst, stammt sie nicht von uns."
+    ],
+    "ctaLabel": null,
+    "ctaUrl": null,
+    "placeholders": [
+      "firstName"
+    ]
+  },
+  {
+    "key": "email.security.apiKeyCreated",
+    "category": "security",
+    "trigger": "apikey.created",
+    "subject": "Neuer API-Schlüssel für dein {appName}-Konto",
+    "preheader": "„{keyName}“, endet auf {keyLast4}",
+    "body": [
+      "Hallo {firstName},",
+      "in deinem Konto wurde ein neuer API-Schlüssel erstellt:",
+      "**Name:** {keyName}\n**Endet auf:** {keyLast4}\n**Berechtigungen:** {keyScopes}\n**Läuft ab:** {expiryDate}",
+      "Behandle API-Schlüssel wie Passwörter: niemals in Chats, E-Mails oder öffentlichem Code teilen. Unser Support fragt nie nach deinem Schlüssel.",
+      "Du hast den Schlüssel nicht erstellt? Dann widerrufe ihn sofort."
+    ],
+    "ctaLabel": "Schlüssel verwalten",
+    "ctaUrl": "{apiKeysUrl}",
+    "placeholders": [
+      "firstName",
+      "keyName",
+      "keyLast4",
+      "keyScopes",
+      "expiryDate",
+      "apiKeysUrl"
+    ]
+  },
+  {
+    "key": "email.workspace.invite",
+    "category": "transactional",
+    "trigger": "workspace.member_invited",
+    "subject": "{inviterName} lädt dich zu „{workspaceName}“ ein",
+    "preheader": "Deine Rolle: {roleName}. Die Einladung gilt bis {expiryDate}.",
+    "body": [
+      "Hallo,",
+      "**{inviterName}** ({inviterEmailMasked}) hat dich in den {appName}-Workspace **{workspaceName}** eingeladen.",
+      "**Deine Rolle:** {roleName}. {roleDescription}",
+      "Du kennst die Person nicht oder hast keine Einladung erwartet? Dann ignoriere diese E-Mail. Ohne deine Bestätigung passiert nichts."
+    ],
+    "ctaLabel": "Einladung ansehen",
+    "ctaUrl": "{inviteUrl}",
+    "placeholders": [
+      "inviterName",
+      "inviterEmailMasked",
+      "workspaceName",
+      "roleName",
+      "roleDescription",
+      "expiryDate",
+      "inviteUrl"
+    ]
+  },
+  {
+    "key": "email.workspace.roleChanged",
+    "category": "transactional",
+    "trigger": "workspace.member_role_changed",
+    "subject": "Deine Rolle in „{workspaceName}“ wurde geändert",
+    "preheader": "Neu: {roleName}",
+    "body": [
+      "Hallo {firstName},",
+      "**{changedByName}** hat deine Rolle im Workspace **{workspaceName}** geändert:",
+      "**Vorher:** {oldRoleName}\n**Jetzt:** {roleName}. {roleDescription}",
+      "Fragen dazu? Wende dich an die Admins deines Workspaces."
+    ],
+    "ctaLabel": "Workspace öffnen",
+    "ctaUrl": "{appUrl}",
+    "placeholders": [
+      "firstName",
+      "changedByName",
+      "workspaceName",
+      "oldRoleName",
+      "roleName",
+      "roleDescription",
+      "appUrl"
+    ]
+  }
+]

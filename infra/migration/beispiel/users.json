@@ -1,0 +1,8 @@
+{
+  "philipp.alt": {"user_id": "philipp.alt", "display_name": "Philipp von Alt", "email": "philipp.alt@example.org", "enabled": true, "groups": ["AH", "Vorstand"], "backend": "Database"},
+  "jonas": {"user_id": "jonas", "display_name": "Jonas Jung", "email": "jonas@example.org", "enabled": true, "groups": ["Aktive"], "backend": "Database"},
+  "Max Müller": {"user_id": "Max Müller", "display_name": "Max Müller", "email": "max@example.org", "enabled": true, "groups": ["Aktive"], "backend": "Database"},
+  "kasse": {"user_id": "kasse", "display_name": "Kasse", "email": null, "enabled": true, "groups": ["Vorstand"], "backend": "Database"},
+  "hans": {"user_id": "hans", "display_name": "Hans Weg", "email": "hans@example.org", "enabled": false, "groups": [], "backend": "Database"},
+  "bursch": {"user_id": "bursch", "display_name": "Bernd Bursch", "email": "bursch@example.org", "enabled": true, "groups": ["burschen"], "backend": "user_oidc"}
+}
