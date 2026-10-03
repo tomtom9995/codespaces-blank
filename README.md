@@ -120,4 +120,4 @@ node cms/scripts/validate-content.mjs                         # Texte prüfen
 4. **Twilio** für echte SMS/Anrufe (`PHONE_PROVIDER=twilio` + Zugangsdaten), **E-Mail-Anbieter** (SMTP von Brevo/Mailjet)
 5. **Google Cloud**: Projekte, Terraform, Variablen für `deploy.yml` (siehe [docs/plan/cicd-gcp.md](docs/plan/cicd-gcp.md))
 6. Workspaces mit Einladungen, Abos (In-App-Kauf)
-7. **Corps Chattia:** Umzug nach Runbook, Backup-Projekt per Terraform anlegen, Chattia-Assistent um Office-Dokumente erweitern
+7. **Corps Chattia:** Umzug nach Runbook, Backup-Projekt per Terraform anlegen, Texterkennung für gescannte PDFs

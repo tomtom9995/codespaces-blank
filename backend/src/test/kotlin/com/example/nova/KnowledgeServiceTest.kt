@@ -73,4 +73,20 @@ Auf der Kneipe führt das Präsidium."""
         val chunks = KnowledgeService.chunk("/Haus/Hausordnung.pdf", text)
         assertEquals("/Haus/Hausordnung.pdf", KnowledgeService.rank(chunks, "Ab wann ist Nachtruhe?", 1).first().path)
     }
+
+    private fun zip(entry: String, xml: String): ByteArray = java.io.ByteArrayOutputStream().also { out ->
+        java.util.zip.ZipOutputStream(out).use { z -> z.putNextEntry(java.util.zip.ZipEntry(entry)); z.write(xml.toByteArray()) }
+    }.toByteArray()
+
+    @Test
+    fun `Text aus Word und LibreOffice`() {
+        val docx = zip("word/document.xml", """<w:document xmlns:w="x"><w:body>
+            <w:p><w:r><w:t>Protokoll</w:t></w:r></w:p>
+            <w:p><w:r><w:t xml:space="preserve">Beschluss: Beitrag </w:t></w:r><w:r><w:t>bleibt &amp; gilt</w:t></w:r></w:p></w:body></w:document>""")
+        assertEquals("Protokoll\n\nBeschluss: Beitrag bleibt & gilt", KnowledgeService.documentText("CC.docx", docx))
+        val odt = zip("content.xml", """<office:document-content><office:body><office:text>
+            <text:h text:outline-level="1">Kneipcomment</text:h><text:p>Das <text:span>Präsidium</text:span> führt.</text:p>
+            </office:text></office:body></office:document-content>""")
+        assertEquals("Kneipcomment\n\nDas Präsidium führt.", KnowledgeService.documentText("Comment.odt", odt))
+    }
 }

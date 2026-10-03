@@ -39,7 +39,7 @@ Textdokumente (`.md`, `.txt`) aus den Ordnern in `KNOWLEDGE_FOLDERS` werden **mi
 
 ![Assistent beantwortet eine Frage aus dem Semesterprogramm](../screenshots/android/25-assistent-aus-der-cloud.png)
 
-✅ PDFs mit Textebene werden gelesen (Apache PDFBox). Nächste Schritte: Office-Dokumente, Texterkennung für Scans, Vektorsuche bei großen Beständen, „Quelle öffnen“ direkt aus der Antwort.
+✅ Gelesen werden Markdown/Text, PDFs mit Textebene (Apache PDFBox), Word (.docx) und LibreOffice (.odt). Nächste Schritte: Texterkennung für Scans, Vektorsuche bei großen Beständen, „Quelle öffnen“ direkt aus der Antwort.
 
 ## 2. Semesterprogramm und Veranstaltungen
 
