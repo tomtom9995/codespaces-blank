@@ -12,8 +12,9 @@ if ! wp core is-installed 2>/dev/null; then
   wp language core install de_DE --activate || true
   wp option update blogdescription "Visitenkarte"
   wp post create --post_type=page --post_status=publish --post_title="Willkommen" \
-    --post_content="<!-- wp:paragraph --><p>Platzhalter – wird bei der Migration durch die bestehende Website ersetzt.</p><!-- /wp:paragraph -->"
+    --post_content="<!-- wp:paragraph --><p>Platzhalter – wird bei der Migration durch die bestehende Website ersetzt.</p><!-- /wp:paragraph --><!-- wp:heading --><h2>Termine</h2><!-- /wp:heading --><!-- wp:shortcode -->[chattia_termine]<!-- /wp:shortcode -->"
   wp option update show_on_front page
+  wp option update timezone_string "Europe/Berlin"
   wp option update page_on_front "$(wp post list --post_type=page --name=willkommen --field=ID)"
   wp rewrite structure '/%postname%/'
 fi

@@ -13,7 +13,7 @@ Stand: Oktober 2026 · Vorschläge, nach Nutzen und Aufwand sortiert. Alles baut
 | # | Idee | Nutzen | Aufwand | Wann |
 |---|---|---|---|---|
 | 1 | **Chattia-Assistent**: KI beantwortet Fragen zu Satzung, Comment, Hausordnung, Semesterprogramm aus der Cloud | hoch | mittel | ✅ erste Version läuft |
-| 2 | Semesterprogramm als gemeinsamer Kalender + Anmeldung zu Veranstaltungen | hoch | gering | sofort |
+| 2 | Semesterprogramm als gemeinsamer Kalender + Anmeldung zu Veranstaltungen | hoch | gering | ✅ Kalender + Website |
 | 3 | Amtsordner und Übergabe-Checklisten je Charge | hoch | gering | ✅ Team-Ordner angelegt |
 | 4 | Mitgliederverzeichnis AHV mit Opt-in-Profilen, Adressänderungen per Self-Service | hoch | mittel | Phase 2 |
 | 5 | Convent digital: Tagesordnung, Protokolle, Abstimmungen | mittel | gering | sofort |
@@ -43,8 +43,11 @@ Nächste Schritte: PDF- und Office-Dokumente (Text-Extraktion), Vektorsuche bei 
 
 ## 2. Semesterprogramm und Veranstaltungen
 
-- Ein Nextcloud-Kalender **„Semesterprogramm“** (bearbeitbar: Chargen; lesbar: alle) und **„Hausbelegung“**.
-- Abo-Link (ICS) für Handy-Kalender; öffentliche Termine automatisch auf der Website (WordPress-Plugin liest ICS).
+- ✅ Nextcloud-Kalender **„Semesterprogramm“**: Chargen schreiben, alle Gruppen lesen, öffentlicher Abo-Link für Handy-Kalender. Eingerichtet mit `docker compose exec nextcloud bash /chattia/semesterprogramm.sh`.
+- ✅ Die **Website zeigt die öffentlichen Termine automatisch** (Shortcode `[chattia_termine]`, Plugin [`chattia-termine.php`](../../infra/hosting/wordpress/mu-plugins/chattia-termine.php)). Interne Termine (Klassifizierung *privat*/*vertraulich*, z. B. Convente) erscheinen weder im Abo-Link noch auf der Website. Gepflegt wird nur noch an einer Stelle.
+- Offen: Kalender „Hausbelegung“, Anmeldung zu Veranstaltungen.
+
+![Website mit Terminen aus dem Kalender](../screenshots/hosting/07-website-termine.png)
 - Anmeldung zu Stiftungsfest, Kneipe, Ausflügen mit Nextcloud *Forms* oder als Funktion in der App (Zusage, Begleitung, Essenswahl). Erinnerung per Push.
 
 ## 3. Amtsordner und Übergabe

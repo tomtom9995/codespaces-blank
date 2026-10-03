@@ -109,6 +109,7 @@ services:
       - ./nextcloud/config:/chattia/config:ro
       - ./nextcloud/teamfolders.conf:/chattia/teamfolders.conf:ro
       - ./nextcloud/teamfolders.sh:/chattia/teamfolders.sh:ro
+      - ./nextcloud/semesterprogramm.sh:/chattia/semesterprogramm.sh:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -150,6 +151,8 @@ services:
       CHATTIA_AUTH_URL: ${AUTH_URL}
       CHATTIA_OIDC_SECRET: ${WORDPRESS_OIDC_SECRET}
       CHATTIA_ALLOW_INTERNAL_IDP: ${WORDPRESS_ALLOW_INTERNAL_IDP:-}
+      # Öffentlicher Abo-Link des Kalenders „Semesterprogramm“ (Ausgabe von nextcloud/semesterprogramm.sh)
+      CHATTIA_EVENTS_ICS: ${WORDPRESS_EVENTS_ICS:-}
       WORDPRESS_CONFIG_EXTRA: |
         define('WP_HOME', '${WEB_URL}');
         define('WP_SITEURL', '${WEB_URL}');

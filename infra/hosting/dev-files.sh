@@ -69,3 +69,33 @@ for u in bursch senior; do
   nc php occ files:scan "$u" -q
 done
 echo "Beispieldateien in den Team-Ordnern angelegt (Corps, Semesterprogramm, Aktivitas, Amt Senior, Kasse)"
+
+# Semesterprogramm-Kalender mit Beispielterminen (ein interner Termin, der nicht öffentlich erscheinen darf)
+docker compose cp nextcloud/semesterprogramm.sh nextcloud:/tmp/semesterprogramm.sh >/dev/null 2>&1
+ics_url=$(docker compose exec -T nextcloud bash /tmp/semesterprogramm.sh)
+event() { # uid start ende titel ort klasse
+  docker compose exec -T nextcloud curl -fsS -o /dev/null -u "$NEXTCLOUD_ADMIN_USER:$NEXTCLOUD_ADMIN_PASSWORD" \
+    -H "Host: $CLOUD_HOST_WITH_PORT" -H "X-Forwarded-Proto: https" -H "Content-Type: text/calendar" -X PUT \
+    "http://localhost/remote.php/dav/calendars/$NEXTCLOUD_ADMIN_USER/semesterprogramm/$1.ics" --data-binary @- <<ICS
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Corps Chattia//dev-files//DE
+BEGIN:VEVENT
+UID:$1@chattia
+DTSTAMP:20261001T120000Z
+DTSTART;TZID=Europe/Berlin:$2
+DTEND;TZID=Europe/Berlin:$3
+SUMMARY:$4
+LOCATION:$5
+CLASS:$6
+END:VEVENT
+END:VCALENDAR
+ICS
+}
+event antritt-ws26 20261017T200000 20261017T235900 "Antrittskneipe" "Corpshaus" PUBLIC
+event fuchsenstunde-1 20261107T190000 20261107T210000 "Fuchsenstunde" "Corpshaus" PUBLIC
+event cc-intern-1 20261114T190000 20261114T220000 "Convent (intern)" "Corpshaus" PRIVATE
+event stiftungsfest-26 20261128T180000 20261129T020000 "Stiftungsfest" "Kurhaus" PUBLIC
+event weihnachtskneipe-26 20261212T200000 20261212T235900 "Weihnachtskneipe" "Corpshaus" PUBLIC
+echo "Semesterprogramm mit Beispielterminen. Öffentlicher Abo-Link (für WORDPRESS_EVENTS_ICS in .env):"
+echo "  $ics_url"
