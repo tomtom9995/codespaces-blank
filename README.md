@@ -10,6 +10,10 @@ Erstes lauffähiges Produkt nach dem Plan in [`docs/plan/`](docs/plan/README.md)
 | Android-App | Jetpack Compose | `apps/android/` | ✅ APK baut, Klick-Durchlauf mit Screenshots |
 | iOS-App | SwiftUI | `apps/ios/` | ✅ baut in der CI auf macOS (Simulator); auf echtem Gerät noch nicht getestet |
 | CI/CD | GitHub Actions, Cloud Run | `.github/workflows/` | ✅ angelegt |
+| Zentraler Login | Keycloak 26 (Passkeys, Gruppen = Corps-Rollen) | `infra/hosting/keycloak/` | ✅ SSO in Cloud, Website und App getestet |
+| Cloud | Nextcloud 32, Dateien auch in der App | `infra/hosting/` | ✅ läuft lokal, Umzugsplan steht |
+| Website | WordPress, Login nur für die Redaktion | `infra/hosting/wordpress/` | ✅ läuft lokal |
+| Datensicherung | restic → Google Cloud Storage (eigenes Projekt, Löschschutz), Offsite-Kopie, Jahresarchiv | `infra/backup/`, `infra/terraform/backup/` | ✅ Sicherung + Wiederherstellung getestet |
 
 ## Was schon funktioniert
 
@@ -24,6 +28,14 @@ Erstes lauffähiges Produkt nach dem Plan in [`docs/plan/`](docs/plan/README.md)
 - **Geräteliste**, „Alle anderen Geräte abmelden“, letzte Sicherheitsaktivität
 - **Rollen:** jedes Konto hat einen Workspace mit Rolle Inhaber:in (Admin, Mitglied, Gast vorbereitet)
 - **Alle Texte aus dem CMS:** Änderung in Strapi → sofort in der App, ohne Update; offline gilt die eingebaute Fassung
+
+## Corps Chattia: Cloud, Website, zentraler Login und Backup
+
+Ein Konto für alles: Mitglieder melden sich mit ihrem **Chattia-Konto** (Keycloak) an der Cloud, an der Website (Redaktion) und in der App an. In der App sehen sie ihre **Cloud-Dateien**, mit genau den Rechten wie im Browser. Start und Details: [docs/plan/zentraler-login.md](docs/plan/zentraler-login.md) · Umzug: [nextcloud-wordpress.md](docs/plan/nextcloud-wordpress.md) · Backup: [backup.md](docs/plan/backup.md) · Ideen fürs Corps: [corps-chattia.md](docs/plan/corps-chattia.md)
+
+| Anmeldung (Keycloak) | Cloud nach SSO | App: Chattia-Konto | App: Cloud-Dateien |
+|---|---|---|---|
+| ![](docs/screenshots/hosting/01-keycloak-login.png) | ![](docs/screenshots/hosting/02-nextcloud-nach-sso.png) | ![](docs/screenshots/android/20-anmeldung-chattia-konto.png) | ![](docs/screenshots/android/24-ordner-angelegt.png) |
 
 ## Screenshots (Android, automatisch erzeugt)
 
@@ -97,4 +109,5 @@ node cms/scripts/validate-content.mjs                         # Texte prüfen
 3. **Push-Benachrichtigungen** (Firebase Cloud Messaging) – Texte vorhanden
 4. **Twilio** für echte SMS/Anrufe (`PHONE_PROVIDER=twilio` + Zugangsdaten), **E-Mail-Anbieter** (SMTP von Brevo/Mailjet)
 5. **Google Cloud**: Projekte, Terraform, Variablen für `deploy.yml` (siehe [docs/plan/cicd-gcp.md](docs/plan/cicd-gcp.md))
-6. Datei-Uploads, Workspaces mit Einladungen, Abos (In-App-Kauf)
+6. Workspaces mit Einladungen, Abos (In-App-Kauf)
+7. **Corps Chattia:** Umzug nach Runbook, Backup-Projekt per Terraform anlegen, 2FA-Pflicht für Chargen in Keycloak, Chattia-Assistent (KI über die Cloud-Dokumente)

@@ -13,6 +13,10 @@ Eine App, die wie ChatGPT oder Claude funktioniert. Sie wird nativ für iOS und 
 | 9 | Onboarding: von der ersten E-Mail bis Tag 14 | [onboarding.md](onboarding.md) |
 | 10 | CMS: Strapi für alle Texte, E-Mails, SMS und Onboarding | [cms.md](cms.md) |
 | 11 | CI/CD-Pipeline und Google-Cloud-Dienste | [cicd-gcp.md](cicd-gcp.md) |
+| 12 | Zentraler Login (Keycloak) für Cloud, Website und App, Rollen im Corps | [zentraler-login.md](zentraler-login.md) |
+| 13 | Umzug der bestehenden Nextcloud und der WordPress-Seite in die Cloud | [nextcloud-wordpress.md](nextcloud-wordpress.md) |
+| 14 | Datensicherung: 3-2-1-1-0, Aufbewahrung bis 10 Jahre, Wiederherstellung | [backup.md](backup.md) |
+| 15 | Was im Umfeld des Corps Chattia zusätzlich Sinn ergibt | [corps-chattia.md](corps-chattia.md) |
 | – | Alle Texte der App (Startfassung für das CMS) | [`cms/content/de/`](../../cms/content/de/) |
 
 ---
