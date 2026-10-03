@@ -1,6 +1,8 @@
 package com.example.nova.android
 
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -129,6 +131,14 @@ class CentralLoginTest {
         callback.value = browserLogin(nova.auth.centralLoginUrl(), "bursch", "Chattia-Test-2026!")
 
         waitForText("Womit kann ich helfen?")
+
+        // Chattia-Assistent: Antwort aus den Cloud-Dokumenten mit Quelle
+        compose.onNode(hasSetTextAction()).performTextInput("Wann ist das Stiftungsfest und was ist der Dresscode?")
+        compose.onNodeWithContentDescription("Senden").performClick()
+        waitForText("Quellen aus der Cloud")
+        compose.waitUntil(30_000) { compose.onAllNodesWithContentDescription("Stoppen").fetchSemanticsNodes().isEmpty() }
+        shot("25-assistent-aus-der-cloud")
+
         compose.onNodeWithContentDescription("Menü").performClick()
         waitForText("Dateien")
         compose.onNodeWithText("Dateien").performClick()

@@ -7,6 +7,7 @@ import com.example.nova.ModelDto
 import com.example.nova.StreamEvent
 import com.example.nova.auth.Principal
 import com.example.nova.auth.Users
+import com.example.nova.central.KnowledgeService
 import com.example.nova.badRequest
 import com.example.nova.content.ContentService
 import com.example.nova.db.Database
@@ -27,6 +28,8 @@ class ChatService(
     private val db: Database,
     private val provider: LlmProvider,
     private val content: ContentService,
+    /** Chattia-Assistent: Wissen aus der Cloud des Nutzers (optional). */
+    private val knowledge: KnowledgeService? = null,
 ) {
     private val log = LoggerFactory.getLogger(ChatService::class.java)
 
@@ -78,7 +81,7 @@ class ChatService(
                 id,
             ) { ChatTurn(it.getString("role"), it.getString("content")) }
             val user = Users.byId(this, p.userId)
-            PreparedTurn(id, model, history, user?.firstName, if (history.size == 1) makeTitle(question) else null)
+            PreparedTurn(id, model, history, user?.firstName, if (history.size == 1) makeTitle(question) else null, p.userId)
         }
         if (prepared.newTitle != null) db.tx { update("UPDATE conversations SET title = ? WHERE id = ?", prepared.newTitle, prepared.conversationId) }
         return prepared
@@ -90,9 +93,19 @@ class ChatService(
         val answer = StringBuilder()
         var failure: String? = null
         try {
-            provider.stream(turn.model, systemPrompt(turn.firstName), turn.history).collect { chunk ->
+            val question = turn.history.lastOrNull { it.role == "user" }?.content.orEmpty()
+            val snippets = if (knowledge != null && turn.userId != null) knowledge.search(turn.userId, question) else emptyList()
+            val system = systemPrompt(turn.firstName) + if (snippets.isEmpty()) "" else KnowledgeService.contextBlock(snippets)
+            provider.stream(turn.model, system, turn.history).collect { chunk ->
                 answer.append(chunk)
                 emit(StreamEvent("delta", text = chunk))
+            }
+            if (snippets.isNotEmpty()) {
+                // Quellen sichtbar machen – auch im gespeicherten Verlauf
+                val sources = "\n\n---\n" + content.get().ui("assistant.sources") + "\n" +
+                    snippets.map { it.path }.distinct().joinToString("\n") { "- `$it`" }
+                answer.append(sources)
+                emit(StreamEvent("delta", text = sources))
             }
         } catch (e: CancellationException) {
             saveAnswer(turn.conversationId, answer.toString(), turn.model)
@@ -108,7 +121,14 @@ class ChatService(
         else emit(StreamEvent("done", messageId = messageId?.toString(), conversationTitle = turn.newTitle))
     }
 
-    data class PreparedTurn(val conversationId: UUID, val model: String, val history: List<ChatTurn>, val firstName: String?, val newTitle: String?)
+    data class PreparedTurn(
+        val conversationId: UUID,
+        val model: String,
+        val history: List<ChatTurn>,
+        val firstName: String?,
+        val newTitle: String?,
+        val userId: UUID? = null,
+    )
 
     private suspend fun saveAnswer(conversationId: UUID, text: String, model: String): UUID? {
         if (text.isBlank()) return null

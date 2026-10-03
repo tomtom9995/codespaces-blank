@@ -72,6 +72,7 @@ import io.ktor.server.request.contentType
 import io.ktor.server.request.receiveChannel
 import io.ktor.server.response.respondRedirect
 import com.example.nova.central.FilesService
+import com.example.nova.central.KnowledgeService
 import com.example.nova.central.OidcService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -130,13 +131,14 @@ class Services(
                 else -> MockProvider()
             }
             val oidc = OidcService(config, db, http, auth)
+            val files = FilesService(config, http, oidc)
             return Services(
                 config, db, http, content, email, phone, auth,
                 AccountService(config, db, auth, email, phone, content),
-                ChatService(db, provider, content),
+                ChatService(db, provider, content, KnowledgeService(files, config.knowledgeFolders)),
                 OnboardingScheduler(config, db, email),
                 oidc,
-                FilesService(config, http, oidc),
+                files,
             )
         }
     }

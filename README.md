@@ -33,9 +33,9 @@ Erstes lauffähiges Produkt nach dem Plan in [`docs/plan/`](docs/plan/README.md)
 
 Ein Konto für alles: Mitglieder melden sich mit ihrem **Chattia-Konto** (Keycloak) an der Cloud, an der Website (Redaktion) und in der App an. In der App sehen sie ihre **Cloud-Dateien**, mit genau den Rechten wie im Browser. Start und Details: [docs/plan/zentraler-login.md](docs/plan/zentraler-login.md) · Umzug: [nextcloud-wordpress.md](docs/plan/nextcloud-wordpress.md) · Backup: [backup.md](docs/plan/backup.md) · Ideen fürs Corps: [corps-chattia.md](docs/plan/corps-chattia.md)
 
-| Anmeldung (Keycloak) | Cloud nach SSO | App: Chattia-Konto | App: Cloud-Dateien |
-|---|---|---|---|
-| ![](docs/screenshots/hosting/01-keycloak-login.png) | ![](docs/screenshots/hosting/02-nextcloud-nach-sso.png) | ![](docs/screenshots/android/20-anmeldung-chattia-konto.png) | ![](docs/screenshots/android/24-ordner-angelegt.png) |
+| Anmeldung (Keycloak) | Cloud nach SSO | App: Chattia-Konto | App: Cloud-Dateien | Chattia-Assistent |
+|---|---|---|---|---|
+| ![](docs/screenshots/hosting/01-keycloak-login.png) | ![](docs/screenshots/hosting/02-nextcloud-nach-sso.png) | ![](docs/screenshots/android/20-anmeldung-chattia-konto.png) | ![](docs/screenshots/android/21-dateien.png) | ![](docs/screenshots/android/25-assistent-aus-der-cloud.png) |
 
 ## Screenshots (Android, automatisch erzeugt)
 
@@ -110,4 +110,4 @@ node cms/scripts/validate-content.mjs                         # Texte prüfen
 4. **Twilio** für echte SMS/Anrufe (`PHONE_PROVIDER=twilio` + Zugangsdaten), **E-Mail-Anbieter** (SMTP von Brevo/Mailjet)
 5. **Google Cloud**: Projekte, Terraform, Variablen für `deploy.yml` (siehe [docs/plan/cicd-gcp.md](docs/plan/cicd-gcp.md))
 6. Workspaces mit Einladungen, Abos (In-App-Kauf)
-7. **Corps Chattia:** Umzug nach Runbook, Backup-Projekt per Terraform anlegen, Chattia-Assistent (KI über die Cloud-Dokumente)
+7. **Corps Chattia:** Umzug nach Runbook, Backup-Projekt per Terraform anlegen, Chattia-Assistent um PDF/Office erweitern

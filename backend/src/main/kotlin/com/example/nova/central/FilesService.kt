@@ -8,6 +8,7 @@ import com.example.nova.auth.Principal
 import com.example.nova.badRequest
 import com.example.nova.notFound
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.header
 import io.ktor.client.request.prepareRequest
@@ -59,9 +60,16 @@ class FilesService(
         method: HttpMethod,
         path: String,
         configure: io.ktor.client.request.HttpRequestBuilder.() -> Unit = {},
+    ): HttpResponse = dav(p.userId, method, path, configure)
+
+    private suspend fun dav(
+        userId: java.util.UUID,
+        method: HttpMethod,
+        path: String,
+        configure: io.ktor.client.request.HttpRequestBuilder.() -> Unit = {},
     ): HttpResponse {
         requireEnabled()
-        val (account, token) = oidc.accessToken(p.userId)
+        val (account, token) = oidc.accessToken(userId)
         val response = http.request(davUrl(account.username, path)) {
             this.method = method
             bearerAuth(token)
@@ -90,13 +98,15 @@ class FilesService(
         }
     }
 
-    suspend fun list(p: Principal, path: String): FolderListing {
-        val response = dav(p, HttpMethod("PROPFIND"), path) {
+    suspend fun list(p: Principal, path: String): FolderListing = list(p.userId, path)
+
+    suspend fun list(userId: java.util.UUID, path: String): FolderListing {
+        val response = dav(userId, HttpMethod("PROPFIND"), path) {
             header("Depth", "1")
             contentType(ContentType.Application.Xml)
             setBody(PROPFIND_BODY)
         }
-        val (account, _) = oidc.accessToken(p.userId)
+        val (account, _) = oidc.accessToken(userId)
         val prefix = "/remote.php/dav/files/${account.username}/"
         val requested = normalize(path).joinToString("/")
         val entries = parseMultiStatus(response.bodyAsText(), prefix)
@@ -117,6 +127,13 @@ class FilesService(
             checkStatus(response, path)
             block(response)
         }
+    }
+
+    /** Textinhalt einer Datei (für den Assistenten), höchstens [maxBytes]. */
+    suspend fun readText(userId: java.util.UUID, path: String, maxBytes: Int = 200_000): String {
+        val response = dav(userId, HttpMethod.Get, path)
+        val bytes = response.body<ByteArray>()
+        return bytes.copyOf(minOf(bytes.size, maxBytes)).decodeToString()
     }
 
     suspend fun upload(p: Principal, path: String, body: ByteReadChannel, type: ContentType?, length: Long?) {

@@ -35,6 +35,8 @@ data class Config(
     val oidcAppRedirects: List<String>,
     /** Nextcloud für die Dateiverwaltung in den Apps, z. B. https://cloud.example.org – leer = deaktiviert. */
     val nextcloudUrl: String?,
+    /** Ordner in der Cloud, aus denen der Assistent Wissen bezieht (Textdokumente). Leer = aus. */
+    val knowledgeFolders: List<String>,
     /** Geheimnis, aus dem der AES-256-Schlüssel für gespeicherte Tokens des zentralen Logins abgeleitet wird. */
     val tokenEncryptionKey: String,
     val appleClientIds: List<String>,
@@ -87,6 +89,7 @@ data class Config(
                 oidcClientSecret = opt("OIDC_CLIENT_SECRET"),
                 oidcAppRedirects = list("OIDC_APP_REDIRECTS").ifEmpty { listOf("nova://auth") },
                 nextcloudUrl = opt("NEXTCLOUD_URL")?.trimEnd('/'),
+                knowledgeFolders = if (env["KNOWLEDGE_FOLDERS"] != null) list("KNOWLEDGE_FOLDERS") else listOf("/"),
                 tokenEncryptionKey = if (devMode) get("TOKEN_ENCRYPTION_KEY", "dev-only-token-encryption-secret") else get("TOKEN_ENCRYPTION_KEY"),
                 appleClientIds = list("APPLE_CLIENT_IDS"),
                 trustGeoHeaders = get("TRUST_GEO_HEADERS", "false").toBoolean(),

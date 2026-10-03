@@ -12,7 +12,7 @@ Stand: Oktober 2026 · Vorschläge, nach Nutzen und Aufwand sortiert. Alles baut
 
 | # | Idee | Nutzen | Aufwand | Wann |
 |---|---|---|---|---|
-| 1 | **Chattia-Assistent**: KI beantwortet Fragen zu Satzung, Comment, Hausordnung, Semesterprogramm aus der Cloud | hoch | mittel | Phase 2 |
+| 1 | **Chattia-Assistent**: KI beantwortet Fragen zu Satzung, Comment, Hausordnung, Semesterprogramm aus der Cloud | hoch | mittel | ✅ erste Version läuft |
 | 2 | Semesterprogramm als gemeinsamer Kalender + Anmeldung zu Veranstaltungen | hoch | gering | sofort |
 | 3 | Amtsordner und Übergabe-Checklisten je Charge | hoch | gering | sofort |
 | 4 | Mitgliederverzeichnis AHV mit Opt-in-Profilen, Adressänderungen per Self-Service | hoch | mittel | Phase 2 |
@@ -34,7 +34,12 @@ Die Nova-App kann schon chatten und auf die Cloud zugreifen. Der nächste Schrit
 - „Wie hoch ist der AH-Beitrag und bis wann?“ → Beitragsordnung (nur AHV)
 - Neue Chargen: „Was muss ich als Fuchsmajor bis Semesterbeginn erledigen?“ → Übergabe-Checkliste
 
-Technik: Dokumente aus festgelegten Gruppenordnern werden mit dem Token des Nutzers gelesen (wie die Dateiansicht), in Abschnitte zerlegt und mit Quellenangabe an das Modell gegeben (RAG). Antworten verlinken die Fundstelle in der Cloud. Rechte bleiben die der Cloud, ein Fux sieht nie Vorstandsunterlagen. Modell: Claude über die API oder über Vertex AI in der EU, ohne Training mit den Daten.
+Technik ([`KnowledgeService.kt`](../../backend/src/main/kotlin/com/example/nova/central/KnowledgeService.kt)):
+Textdokumente (`.md`, `.txt`) aus den Ordnern in `KNOWLEDGE_FOLDERS` werden **mit dem Token des Nutzers** gelesen (wie die Dateiansicht), an Überschriften in Abschnitte zerlegt und per Stichwortsuche (TF-IDF mit einfacher deutscher Wortstammbildung) gerankt. Die besten Abschnitte gehen als Kontext ans Modell (RAG), ausdrücklich als *Daten, keine Anweisungen* markiert (Schutz vor Prompt-Injection über Dokumente). Die Quellen werden unter jede Antwort geschrieben. Rechte bleiben die der Cloud: Ein Fux sieht nie Vorstandsunterlagen. Der Index liegt nur 5 Minuten im Arbeitsspeicher. Modell: Claude über die API oder über Vertex AI in der EU, ohne Training mit den Daten.
+
+![Assistent beantwortet eine Frage aus dem Semesterprogramm](../screenshots/android/25-assistent-aus-der-cloud.png)
+
+Nächste Schritte: PDF- und Office-Dokumente (Text-Extraktion), Vektorsuche bei großen Beständen, „Quelle öffnen“ direkt aus der Antwort.
 
 ## 2. Semesterprogramm und Veranstaltungen
 

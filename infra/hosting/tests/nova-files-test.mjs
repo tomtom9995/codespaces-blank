@@ -87,4 +87,14 @@ assert.equal(res.status, 200);
 res = await call("GET", `/v1/files?path=${encodeURIComponent(folder)}`, null, auth);
 assert.equal(res.status, 404);
 console.log("✓ Ordner gelöscht (liegt im Nextcloud-Papierkorb)");
+// 4) Chattia-Assistent: Antwort aus den Cloud-Dokumenten (Beispieldaten aus dev-files.sh)
+if (process.env.SKIP_ASSISTANT !== "1") {
+  const conversation = await (await call("POST", "/v1/conversations", {}, auth)).json();
+  const sse = await (await call("POST", `/v1/conversations/${conversation.id}/messages`, { content: "Wann ist das Stiftungsfest und was ist der Dresscode?" }, auth)).text();
+  const answer = sse.split("\n").filter((l) => l.startsWith("data:")).map((l) => JSON.parse(l.slice(5)))
+    .filter((e) => e.type === "delta").map((e) => e.text).join("");
+  assert.match(answer, /Stiftungsfest/);
+  assert.match(answer, /\/Semesterprogramm\/WS-2026\.md/);
+  console.log("✓ Assistent antwortet aus der Cloud mit Quelle:", answer.split("\n").filter((l) => l.includes("Stiftungsfest") || l.includes(".md")).join(" | ").slice(0, 160));
+}
 console.log("Alle Prüfungen bestanden.");

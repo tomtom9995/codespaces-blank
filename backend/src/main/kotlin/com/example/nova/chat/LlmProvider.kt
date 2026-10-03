@@ -136,7 +136,12 @@ class MockProvider : LlmProvider {
 
     override fun stream(model: String, system: String, history: List<ChatTurn>): Flow<String> = flow {
         val question = history.lastOrNull { it.role == "user" }?.content.orEmpty()
-        val answer = buildString {
+        val excerpt = Regex("<auszug [^>]*>\\n([\\s\\S]*?)\\n</auszug>").find(system)?.groupValues?.get(1)
+        val answer = if (excerpt != null) buildString {
+            // Zeigt im Testmodus, was der Assistent in der Cloud gefunden hat
+            append("**Testmodus:** Passend zu deiner Frage habe ich in der Cloud gefunden:\n\n")
+            append("> ${excerpt.take(600).replace("\n", "\n> ")}")
+        } else buildString {
             append("**Testmodus:** Hier antwortet noch kein echtes KI-Modell.\n\n")
             append("Deine Nachricht war:\n\n> ${question.take(300).replace("\n", "\n> ")}\n\n")
             append("So aktivierst du echte Antworten im Backend:\n\n")
