@@ -65,7 +65,13 @@ Prüffragen: Ist **serverseitige Verschlüsselung** aktiv? (Dann vorher `occ enc
 Die neue Cloud kennt nur Chattia-Konten. Damit bestehende Daten, Freigaben und Kalender beim richtigen Mitglied landen, **muss der Keycloak-Benutzername dem alten Nextcloud-Benutzernamen entsprechen** (`mapping-uid=preferred_username`, `unique-uid=0`, `soft_auto_provision=true` sind so eingestellt).
 
 1. Aus `users.json` eine Liste erstellen: alter Benutzername, Anzeigename, E-Mail, Gruppen.
-2. Konten in Keycloak anlegen (Skript nach dem Muster von `keycloak/dev-users.sh` oder CSV-Import über die Admin-API), Gruppen gemäß [Rollentabelle](zentraler-login.md#gruppen--rollen-im-corps).
+2. Konten in Keycloak anlegen mit [`infra/migration/nextcloud-users-to-keycloak.py`](../../infra/migration/nextcloud-users-to-keycloak.py): liest den `occ user:list --info`-Export, ordnet alte Gruppen per CSV den Keycloak-Gruppen zu ([Beispiel](../../infra/migration/beispiel/group-mapping.csv), Rollentabelle siehe [zentraler Login](zentraler-login.md#gruppen--rollen-im-corps)), meldet Problemfälle und legt erst mit `--apply` an. Wiederholbar, mit `--send-invites` verschickt Keycloak die Mail „Passwort festlegen“.
+   ```
+   python3 nextcloud-users-to-keycloak.py users.json --groups mapping.csv            # Probelauf
+   ✗ Max Müller: Benutzername nicht in Keycloak abbildbar (nur a-z 0-9 . _ - @)
+   ✗ kasse: keine E-Mail-Adresse – Einladung unmöglich
+   + philipp.alt   philipp.alt@example.org   /ahv-vorstand /alte-herren
+   ```
 3. Nextcloud kann Benutzernamen nicht umbenennen. Alte Namen mit Großbuchstaben, Leerzeichen oder Sonderzeichen passen nicht zu Keycloak (nur Kleinbuchstaben, Ziffern, `.-_@`). Solche Konten vorab klären: entweder Daten in der alten Instanz an ein neues Konto übertragen (`occ files:transfer-ownership`) oder in Keycloak eine passende Schreibweise wählen und testen.
 4. Einladungsmails erst zum Umzugstag verschicken („Passwort setzen“).
 

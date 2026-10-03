@@ -118,6 +118,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Shell-Skripte (shellcheck)
         run: shellcheck -S warning infra/backup/*.sh infra/hosting/*.sh infra/hosting/nextcloud/*.sh infra/hosting/keycloak/*.sh infra/hosting/nextcloud/hooks/*/*.sh infra/hosting/wordpress/*.sh
+      - name: Migrationsskript (Konten alte Nextcloud → Keycloak)
+        run: python3 -m unittest discover -s infra/migration -p 'test_*.py'
       - name: Keycloak-Realm ist gültiges JSON
         run: jq empty infra/hosting/keycloak/realm-chattia.json
       - name: Compose-Datei
