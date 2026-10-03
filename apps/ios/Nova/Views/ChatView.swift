@@ -7,6 +7,7 @@ struct ChatView: View {
     @State private var input = ""
     @State private var showHistory = false
     @State private var showSettings = false
+    @State private var showFiles = false
 
     private var state: ChatState { model.chat }
 
@@ -26,6 +27,7 @@ struct ChatView: View {
             .toolbar { toolbarContent }
             .sheet(isPresented: $showHistory) { historySheet }
             .sheet(isPresented: $showSettings) { SettingsView(user: user) }
+            .fullScreenCover(isPresented: $showFiles) { FilesView() }
             .alert(state.error ?? "", isPresented: errorShown) {
                 Button("OK", role: .cancel) {}
             }
@@ -125,6 +127,7 @@ struct ChatView: View {
                     }
                 }
                 Section {
+                    Button { showHistory = false; showFiles = true } label: { Label(model.t("files.menu"), systemImage: "folder") }
                     Button { showHistory = false; showSettings = true } label: { Label(model.t("settings.title"), systemImage: "gearshape") }
                 }
             }

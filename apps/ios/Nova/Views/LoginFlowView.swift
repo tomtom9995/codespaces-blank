@@ -16,10 +16,16 @@ struct LoginFlowView: View {
     @State private var message: String?
     @State private var busy = false
     @State private var appleEnabled = false
+    @State private var centralEnabled = false
 
     var body: some View {
         content
-            .task { if let providers = try? await model.nova.api.providers() { appleEnabled = providers.apple } }
+            .task {
+                if let providers = try? await model.nova.api.providers() {
+                    appleEnabled = providers.apple
+                    centralEnabled = providers.central
+                }
+            }
     }
 
     @ViewBuilder private var content: some View {
@@ -39,6 +45,10 @@ struct LoginFlowView: View {
             StepView(title: model.fill(s?.title), message: model.fill(s?.body)) {
                 EmptyView()
             } actions: {
+                if centralEnabled {
+                    PrimaryButton(title: model.t("auth.continueWithChattia"), loading: busy) { Task { await loginWithChattia() } }
+                    Text(model.t("auth.chattiaHint")).font(.footnote).foregroundStyle(.secondary)
+                }
                 if appleEnabled {
                     SignInWithAppleButton(.continue) { request in
                         request.requestedScopes = [.fullName, .email]
@@ -129,6 +139,18 @@ struct LoginFlowView: View {
         busy = true
         defer { busy = false }
         handle(try? await model.nova.auth.verifyStepUp(challengeId: challengeId, code: code))
+    }
+
+    private func loginWithChattia() async {
+        busy = true
+        message = nil
+        defer { busy = false }
+        guard let result = await model.loginWithChattia() else { return } // abgebrochen
+        if result is LoginResult.Success {
+            model.setupPending = false // Name und Gruppen kommen aus dem Chattia-Konto
+        } else {
+            handle(result)
+        }
     }
 
     private func handleApple(_ result: Result<ASAuthorization, Error>) async {
