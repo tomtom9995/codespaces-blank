@@ -49,13 +49,14 @@ import com.example.nova.shared.auth.LoginResult
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 private enum class LoginStep { Welcome, SignIn, Email, EmailCode, StepUp, Blocked }
 
 /** Anmeldung: Willkommen → Methode wählen → E-Mail + Code (oder Google) → ggf. Zusatzbestätigung per SMS. */
 @Composable
-fun LoginFlow(nova: NovaApp, onLoggedIn: (isNewUser: Boolean) -> Unit) {
+fun LoginFlow(nova: NovaApp, centralLoginCallback: MutableStateFlow<String?>, onLoggedIn: (isNewUser: Boolean) -> Unit) {
     val t = LocalTexts.current
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -85,6 +86,22 @@ fun LoginFlow(nova: NovaApp, onLoggedIn: (isNewUser: Boolean) -> Unit) {
             }
             is LoginResult.Blocked -> { message = result.message; step = LoginStep.Blocked }
             is LoginResult.Failed -> message = result.message
+        }
+    }
+
+    // Rücksprung aus dem Browser nach dem Login mit dem Chattia-Konto
+    LaunchedEffect(Unit) {
+        centralLoginCallback.collect { url ->
+            if (url != null) {
+                centralLoginCallback.value = null
+                busy = true
+                message = null
+                val result = nova.auth.completeCentralLogin(url)
+                busy = false
+                if (result is LoginResult.Failed && step != LoginStep.SignIn) step = LoginStep.SignIn
+                // Konten aus dem zentralen Login bringen Namen und Gruppen mit – keine Einrichtung nötig.
+                if (result is LoginResult.Success) onLoggedIn(false) else handle(result)
+            }
         }
     }
 
@@ -139,6 +156,10 @@ fun LoginFlow(nova: NovaApp, onLoggedIn: (isNewUser: Boolean) -> Unit) {
                 title = t.fill(s?.title),
                 body = t.fill(s?.body),
                 actions = {
+                    if (providers.central) {
+                        PrimaryButton(t("auth.continueWithChattia"), onClick = { openCentralLogin(context, nova.auth.centralLoginUrl()) }, loading = busy)
+                        Text(t("auth.chattiaHint"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                     if (providers.google && BuildConfig.GOOGLE_SERVER_CLIENT_ID.isNotBlank()) {
                         SecondaryButton(t("auth.continueWithGoogle"), onClick = {
                             scope.launch {
@@ -157,7 +178,8 @@ fun LoginFlow(nova: NovaApp, onLoggedIn: (isNewUser: Boolean) -> Unit) {
                             }
                         }, enabled = !busy)
                     }
-                    PrimaryButton(t("auth.continueWithEmail"), onClick = { message = null; step = LoginStep.Email })
+                    if (providers.central) SecondaryButton(t("auth.continueWithEmail"), onClick = { message = null; step = LoginStep.Email })
+                    else PrimaryButton(t("auth.continueWithEmail"), onClick = { message = null; step = LoginStep.Email })
                     ErrorText(message)
                     Text(t("auth.legalNotice"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 },

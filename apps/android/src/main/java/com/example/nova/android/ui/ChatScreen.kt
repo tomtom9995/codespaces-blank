@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
@@ -81,7 +82,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatScreen(nova: NovaApp, user: UserDto, onOpenSettings: () -> Unit) {
+fun ChatScreen(nova: NovaApp, user: UserDto, onOpenSettings: () -> Unit, onOpenFiles: () -> Unit = {}) {
     val t = LocalTexts.current
     val chat = nova.chat
     val state by chat.state.collectAsState()
@@ -131,6 +132,13 @@ fun ChatScreen(nova: NovaApp, user: UserDto, onOpenSettings: () -> Unit) {
                     }
                 }
                 HorizontalDivider()
+                NavigationDrawerItem(
+                    label = { Text(t("files.menu")) },
+                    icon = { Icon(Icons.Outlined.Folder, null) },
+                    selected = false,
+                    onClick = { scope.launch { drawer.close() }; onOpenFiles() },
+                    modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 12.dp),
+                )
                 NavigationDrawerItem(
                     label = { Text(t("settings.title")) },
                     icon = { Icon(Icons.Filled.Settings, null) },

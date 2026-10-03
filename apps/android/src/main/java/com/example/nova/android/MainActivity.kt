@@ -1,5 +1,6 @@
 package com.example.nova.android
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,11 +12,24 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val nova = (application as NovaApplication).nova
+        val app = application as NovaApplication
+        handleIntent(intent)
         setContent {
             NovaTheme {
-                NovaRoot(nova)
+                NovaRoot(app.nova, app.centralLoginCallback)
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        val data = intent?.data ?: return
+        if (data.scheme == "nova" && data.host == "auth") {
+            (application as NovaApplication).centralLoginCallback.value = data.toString()
         }
     }
 }

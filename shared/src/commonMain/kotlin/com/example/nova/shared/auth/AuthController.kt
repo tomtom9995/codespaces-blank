@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import com.example.nova.shared.platform.KeyValueStore
 import kotlinx.serialization.json.Json
+import io.ktor.http.decodeURLQueryComponent
 
 /** Ergebnis einer Anmeldung – identisch für E-Mail-Code, Google und Apple. */
 sealed class LoginResult {
@@ -71,6 +72,28 @@ class AuthController(private val api: NovaApi, private val store: KeyValueStore)
 
     @Throws(Exception::class)
     suspend fun loginWithApple(idToken: String, firstName: String?): LoginResult = attempt { api.loginWithIdToken("apple", idToken, firstName) }
+
+    /** Zentraler Login (Chattia-Konto): diese Adresse im Browser öffnen. */
+    fun centralLoginUrl(): String = api.centralLoginUrl()
+
+    /**
+     * Rücksprung aus dem Browser verarbeiten, z. B. nova://auth?code=… oder nova://auth?error=cancelled.
+     * Der Code gilt 2 Minuten und nur einmal; erst der Tausch mit dem Geräteschlüssel ergibt eine Sitzung.
+     */
+    @Throws(Exception::class)
+    suspend fun completeCentralLogin(callbackUrl: String): LoginResult {
+        val query = callbackUrl.substringAfter('?', "").split('&').associate {
+            it.substringBefore('=') to it.substringAfter('=', "").decodeURLQueryComponent()
+        }
+        val code = query["code"]
+        if (code.isNullOrBlank()) {
+            return when (query["error"]) {
+                "cancelled" -> LoginResult.Failed("cancelled", "Anmeldung abgebrochen.")
+                else -> LoginResult.Failed("central_login_failed", "Die Anmeldung mit dem Chattia-Konto hat nicht geklappt. Bitte versuch es erneut.")
+            }
+        }
+        return attempt { api.exchangeCentralLogin(code) }
+    }
 
     /** Profil nach Änderungen (Name, Telefon, …) aktualisieren. */
     fun updateUser(user: UserDto) {

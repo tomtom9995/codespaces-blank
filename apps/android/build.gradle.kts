@@ -45,6 +45,8 @@ android {
                 // UI-Tests gegen ein laufendes Backend + Mailpit (siehe ScreensTest); ohne Variable werden sie übersprungen.
                 it.environment("NOVA_BACKEND_URL", System.getenv("NOVA_BACKEND_URL") ?: "")
                 it.environment("MAILPIT_URL", System.getenv("MAILPIT_URL") ?: "http://localhost:8025")
+                // Optional: Test „Chattia-Konto + Dateien“ gegen infra/hosting (lokale Zertifizierungsstelle von Caddy)
+                it.environment("CHATTIA_CA_CERT", System.getenv("CHATTIA_CA_CERT") ?: "")
                 it.systemProperty("robolectric.graphicsMode", "NATIVE")
             }
         }
@@ -73,6 +75,7 @@ dependencies {
     implementation(libs.credentials.play)
     implementation(libs.googleid)
     implementation(libs.markdown.m3)
+    implementation(libs.browser)
 
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)

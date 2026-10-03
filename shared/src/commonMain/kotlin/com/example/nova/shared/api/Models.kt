@@ -71,6 +71,10 @@ data class UserDto(
     val hasAntiPhishingPhrase: Boolean,
     val marketingConsent: Boolean,
     val workspace: WorkspaceDto,
+    /** Gruppen aus dem zentralen Chattia-Konto (z. B. burschen, alte-herren, senior). */
+    val groups: List<String> = emptyList(),
+    /** Mit dem zentralen Chattia-Konto verbunden – Voraussetzung für Dateien aus der Cloud. */
+    val centralAccount: Boolean = false,
 )
 
 @Serializable
@@ -164,4 +168,23 @@ data class AppContentBundle(
 )
 
 @Serializable
-data class AuthProviders(val google: Boolean = false, val apple: Boolean = false)
+data class AuthProviders(val google: Boolean = false, val apple: Boolean = false, val central: Boolean = false)
+
+@Serializable
+data class OidcExchangeRequest(val code: String, val device: DeviceInfo)
+
+@Serializable
+data class FileEntryDto(
+    val name: String,
+    val path: String,
+    val isFolder: Boolean,
+    val size: Long? = null,
+    val modified: String? = null,
+    val contentType: String? = null,
+)
+
+@Serializable
+data class FolderListing(val path: String, val entries: List<FileEntryDto>)
+
+@Serializable
+data class CreateFolderRequest(val path: String)

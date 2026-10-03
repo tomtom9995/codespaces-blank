@@ -20,7 +20,11 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.ByteArrayContent
+import io.ktor.http.content.OutgoingContent
 import io.ktor.http.content.TextContent
+import io.ktor.http.encodeURLParameter
+import io.ktor.client.statement.readRawBytes
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.utils.io.readUTF8Line
@@ -31,6 +35,9 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.io.encoding.Base64
+
+/** Rücksprungadresse der Apps nach dem zentralen Login (im Backend in OIDC_APP_REDIRECTS erlaubt). */
+const val CENTRAL_LOGIN_REDIRECT = "nova://auth"
 
 class NovaApiException(val status: Int, val code: String, override val message: String) : Exception(message)
 
@@ -111,6 +118,14 @@ class NovaApi(
     suspend fun loginWithIdToken(provider: String, idToken: String, firstName: String?): LoginResponse =
         send<LoginResponse>(HttpMethod.Post, "/v1/auth/$provider", enc(IdTokenLoginRequest(idToken, deviceInfo(), firstName)), auth = false).also(::store)
 
+    /** Adresse, die die App im Browser öffnet (Custom Tab / ASWebAuthenticationSession). */
+    fun centralLoginUrl(appRedirect: String = CENTRAL_LOGIN_REDIRECT): String =
+        "$baseUrl/v1/auth/oidc/start?redirect=" + appRedirect.encodeURLParameter()
+
+    @Throws(Exception::class)
+    suspend fun exchangeCentralLogin(code: String): LoginResponse =
+        send<LoginResponse>(HttpMethod.Post, "/v1/auth/oidc/exchange", enc(OidcExchangeRequest(code, deviceInfo())), auth = false).also(::store)
+
     @Throws(Exception::class)
     suspend fun logout() {
         runCatching { send<Map<String, Boolean>>(HttpMethod.Post, "/v1/auth/logout") }
@@ -141,6 +156,31 @@ class NovaApi(
     suspend fun revokeDevice(id: String) { send<Map<String, Boolean>>(HttpMethod.Delete, "/v1/devices/$id") }
     @Throws(Exception::class)
     suspend fun revokeOtherDevices() { send<Map<String, Int>>(HttpMethod.Post, "/v1/devices/revoke-others") }
+
+    // ---------- Dateien (Chattia-Cloud) ----------
+
+    @Throws(Exception::class)
+    suspend fun listFiles(path: String): FolderListing = send(HttpMethod.Get, "/v1/files?path=${path.encodeURLParameter()}")
+
+    @Throws(Exception::class)
+    suspend fun downloadFile(path: String): ByteArray =
+        sendRaw(HttpMethod.Get, "/v1/files/content?path=${path.encodeURLParameter()}").readRawBytes()
+
+    @Throws(Exception::class)
+    suspend fun uploadFile(path: String, bytes: ByteArray, contentType: String?) {
+        val type = contentType?.let { runCatching { ContentType.parse(it) }.getOrNull() } ?: ContentType.Application.OctetStream
+        sendRaw(HttpMethod.Put, "/v1/files/content?path=${path.encodeURLParameter()}", ByteArrayContent(bytes, type))
+    }
+
+    @Throws(Exception::class)
+    suspend fun createFolder(path: String) {
+        sendRaw(HttpMethod.Post, "/v1/files/folder", TextContent(enc(CreateFolderRequest(path)), ContentType.Application.Json))
+    }
+
+    @Throws(Exception::class)
+    suspend fun deleteFile(path: String) {
+        sendRaw(HttpMethod.Delete, "/v1/files?path=${path.encodeURLParameter()}")
+    }
 
     // ---------- Chat ----------
 
@@ -202,6 +242,22 @@ class NovaApi(
             if (response.status == HttpStatusCode.Unauthorized) expire()
         }
         return response.decode()
+    }
+
+    /** Wie send, aber mit beliebigem Inhalt und roher Antwort (Dateien). */
+    private suspend fun sendRaw(method: HttpMethod, path: String, body: OutgoingContent? = null): HttpResponse {
+        val build: HttpRequestBuilder.(String?) -> Unit = { token ->
+            this.method = method
+            if (token != null) bearerAuth(token)
+            if (body != null) setBody(body)
+        }
+        var response = client.request("$baseUrl$path") { build(sessions.load()?.accessToken) }
+        if (response.status == HttpStatusCode.Unauthorized) {
+            if (refresh()) response = client.request("$baseUrl$path") { build(sessions.load()?.accessToken) }
+            if (response.status == HttpStatusCode.Unauthorized) expire()
+        }
+        if (!response.status.isSuccess()) throw response.toException()
+        return response
     }
 
     private suspend inline fun <reified T> HttpResponse.decode(): T {

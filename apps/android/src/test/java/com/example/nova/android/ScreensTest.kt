@@ -36,7 +36,7 @@ import java.security.spec.ECGenParameterSpec
 import java.util.Base64
 
 /** Software-Schlüssel statt Android Keystore (Robolectric hat keinen Keystore). */
-private class TestDevice : DeviceIdentity {
+internal class TestDevice : DeviceIdentity {
     private val keys = KeyPairGenerator.getInstance("EC").apply { initialize(ECGenParameterSpec("secp256r1")) }.generateKeyPair()
     override val deviceName = "Pixel 10 Pro"
     override val platform = "android"
