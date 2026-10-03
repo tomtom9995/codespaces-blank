@@ -37,6 +37,8 @@ data class Config(
     val nextcloudUrl: String?,
     /** Ordner in der Cloud, aus denen der Assistent Wissen bezieht (Textdokumente). Leer = aus. */
     val knowledgeFolders: List<String>,
+    /** Größte Datei, die über die App hochgeladen werden darf (Bytes). */
+    val maxUploadBytes: Long,
     /** Geheimnis, aus dem der AES-256-Schlüssel für gespeicherte Tokens des zentralen Logins abgeleitet wird. */
     val tokenEncryptionKey: String,
     val appleClientIds: List<String>,
@@ -89,6 +91,7 @@ data class Config(
                 oidcClientSecret = opt("OIDC_CLIENT_SECRET"),
                 oidcAppRedirects = list("OIDC_APP_REDIRECTS").ifEmpty { listOf("nova://auth") },
                 nextcloudUrl = opt("NEXTCLOUD_URL")?.trimEnd('/'),
+                maxUploadBytes = get("MAX_UPLOAD_MB", "512").toLong() * 1_000_000,
                 knowledgeFolders = if (env["KNOWLEDGE_FOLDERS"] != null) list("KNOWLEDGE_FOLDERS") else listOf("/"),
                 tokenEncryptionKey = if (devMode) get("TOKEN_ENCRYPTION_KEY", "dev-only-token-encryption-secret") else get("TOKEN_ENCRYPTION_KEY"),
                 appleClientIds = list("APPLE_CLIENT_IDS"),

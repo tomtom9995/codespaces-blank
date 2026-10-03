@@ -195,6 +195,10 @@ fun Application.module(s: Services) {
             rateLimiter(limit = 30, refillPeriod = 1.minutes)
             requestKey { it.request.origin.remoteHost }
         }
+        register(RateLimitName("cloud")) {
+            rateLimiter(limit = 240, refillPeriod = 1.minutes)
+            requestKey { it.principal<JWTPrincipal>()?.subject ?: it.request.origin.remoteHost }
+        }
         register(RateLimitName("chat")) {
             rateLimiter(limit = 30, refillPeriod = 1.minutes)
             requestKey { it.principal<JWTPrincipal>()?.subject ?: it.request.origin.remoteHost }
@@ -324,6 +328,33 @@ private fun Route.appRoutes(s: Services) {
 
     get("/v1/models") { call.respond(s.chat.models) }
 
+    route("/v1/conversations") {
+        get { call.respond(s.chat.list(call.appPrincipal())) }
+        post { call.respond(s.chat.create(call.appPrincipal(), call.receive<CreateConversationRequest>().model)) }
+        get("/{id}") { call.respond(s.chat.get(call.appPrincipal(), call.parameters["id"]!!)) }
+        delete("/{id}") {
+            s.chat.delete(call.appPrincipal(), call.parameters["id"]!!)
+            call.respond(mapOf("ok" to true))
+        }
+        rateLimit(RateLimitName("chat")) {
+            post("/{id}/messages") {
+                val turn = s.chat.prepare(call.appPrincipal(), call.parameters["id"]!!, call.receive<SendMessageRequest>().content)
+                call.response.header(HttpHeaders.CacheControl, "no-cache")
+                call.response.header("X-Accel-Buffering", "no")
+                call.respondBytesWriter(contentType = ContentType.Text.EventStream) {
+                    s.chat.stream(turn).collect { event ->
+                        writeStringUtf8("data: ${ApiJson.encodeToString(StreamEvent.serializer(), event)}\n\n")
+                        flush()
+                    }
+                }
+            }
+        }
+    }
+
+    rateLimit(RateLimitName("cloud")) { cloudRoutes(s) }
+}
+
+private fun Route.cloudRoutes(s: Services) {
     // Termine aus den Kalendern des Corps (Nextcloud) – im Namen des Nutzers
     get("/v1/events") {
         val days = call.request.queryParameters["days"]?.toLongOrNull()?.coerceIn(1, 366) ?: 180
@@ -349,6 +380,13 @@ private fun Route.appRoutes(s: Services) {
         }
         put("/content") {
             val path = call.request.queryParameters["path"] ?: throw badRequest("invalid_path", "Pfad fehlt.")
+            val length = call.request.header(HttpHeaders.ContentLength)?.toLongOrNull()
+            if (length == null || length > s.config.maxUploadBytes) {
+                throw ApiException(
+                    HttpStatusCode.PayloadTooLarge, "file_too_large",
+                    "Dateien bis ${s.config.maxUploadBytes / 1_000_000} MB lassen sich über die App hochladen – größere bitte über die Cloud im Browser.",
+                )
+            }
             s.files.upload(call.appPrincipal(), path, call.receiveChannel(), call.request.contentType().takeIf { it != ContentType.Any }, call.request.header(HttpHeaders.ContentLength)?.toLongOrNull())
             call.respond(HttpStatusCode.Created, mapOf("ok" to true))
         }
@@ -363,28 +401,6 @@ private fun Route.appRoutes(s: Services) {
         }
     }
 
-    route("/v1/conversations") {
-        get { call.respond(s.chat.list(call.appPrincipal())) }
-        post { call.respond(s.chat.create(call.appPrincipal(), call.receive<CreateConversationRequest>().model)) }
-        get("/{id}") { call.respond(s.chat.get(call.appPrincipal(), call.parameters["id"]!!)) }
-        delete("/{id}") {
-            s.chat.delete(call.appPrincipal(), call.parameters["id"]!!)
-            call.respond(mapOf("ok" to true))
-        }
-        rateLimit(RateLimitName("chat")) {
-            post("/{id}/messages") {
-                val turn = s.chat.prepare(call.appPrincipal(), call.parameters["id"]!!, call.receive<SendMessageRequest>().content)
-                call.response.header(HttpHeaders.CacheControl, "no-cache")
-                call.response.header("X-Accel-Buffering", "no")
-                call.respondBytesWriter(contentType = ContentType.Text.EventStream) {
-                    s.chat.stream(turn).collect { event ->
-                        writeStringUtf8("data: ${ApiJson.encodeToString(StreamEvent.serializer(), event)}\n\n")
-                        flush()
-                    }
-                }
-            }
-        }
-    }
 }
 
 fun ApplicationCall.appPrincipal(): Principal {
