@@ -122,6 +122,9 @@
         {
           "name": "fuchsmajor"
         }
+      ],
+      "realmRoles": [
+        "zwei-faktor-pflicht"
       ]
     },
     {
@@ -130,7 +133,10 @@
         "beschreibung": [
           "Vorstand des Altherrenverbands (Kasse, Schriftführung)"
         ]
-      }
+      },
+      "realmRoles": [
+        "zwei-faktor-pflicht"
+      ]
     },
     {
       "name": "hausverein",
@@ -162,7 +168,10 @@
         "beschreibung": [
           "Technische Administration (mit Hardware-Schlüssel)"
         ]
-      }
+      },
+      "realmRoles": [
+        "zwei-faktor-pflicht"
+      ]
     }
   ],
   "clients": [
@@ -320,6 +329,102 @@
       ],
       "optionalClientScopes": [
         "offline_access"
+      ]
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "zwei-faktor-pflicht",
+        "description": "Anmeldung nur mit zweitem Faktor (TOTP). Geerbt über die Gruppen chargen, ahv-vorstand, it-admins."
+      }
+    ]
+  },
+  "browserFlow": "browser-chattia",
+  "authenticatorConfig": [
+    {
+      "alias": "zwei-faktor-pflicht",
+      "config": {
+        "condUserRole": "zwei-faktor-pflicht",
+        "negate": "false"
+      }
+    }
+  ],
+  "authenticationFlows": [
+    {
+      "alias": "browser-chattia",
+      "description": "Browser-Login: Sitzung, sonst Passwort/Passkey; zweiter Faktor Pflicht für Rolle zwei-faktor-pflicht",
+      "providerId": "basic-flow",
+      "topLevel": true,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "auth-cookie",
+          "authenticatorFlow": false,
+          "autheticatorFlow": false,
+          "requirement": "ALTERNATIVE",
+          "priority": 10,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticatorFlow": true,
+          "autheticatorFlow": true,
+          "requirement": "ALTERNATIVE",
+          "priority": 20,
+          "flowAlias": "browser-chattia-formular",
+          "userSetupAllowed": false
+        }
+      ]
+    },
+    {
+      "alias": "browser-chattia-formular",
+      "description": "Benutzername/Passwort oder Passkey",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "auth-username-password-form",
+          "authenticatorFlow": false,
+          "autheticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 10,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticatorFlow": true,
+          "autheticatorFlow": true,
+          "requirement": "CONDITIONAL",
+          "priority": 20,
+          "flowAlias": "browser-chattia-zweiter-faktor",
+          "userSetupAllowed": false
+        }
+      ]
+    },
+    {
+      "alias": "browser-chattia-zweiter-faktor",
+      "description": "TOTP für Chargen, AHV-Vorstand, IT-Admins",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "conditional-user-role",
+          "authenticatorFlow": false,
+          "autheticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 10,
+          "userSetupAllowed": false,
+          "authenticatorConfig": "zwei-faktor-pflicht"
+        },
+        {
+          "authenticator": "auth-otp-form",
+          "authenticatorFlow": false,
+          "autheticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 20,
+          "userSetupAllowed": false
+        }
       ]
     }
   ]

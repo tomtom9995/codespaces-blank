@@ -36,11 +36,11 @@ Gruppen werden **nur in Keycloak** gepflegt. Nextcloud übernimmt sie bei jeder 
 | `aktivitas/fuechse` | Füxe | Gruppe `fuechse` | – | eingeschränkte Gruppenordner |
 | `inaktive` | Inaktive | Gruppe `inaktive` | – | |
 | `alte-herren` | AHV-Mitglieder | Gruppe `alte-herren` | – | |
-| `chargen/senior` … `fuchsmajor` | Chargierte | jeweilige Gruppe | – | 2FA (geplant), Amtsordner |
-| `ahv-vorstand` | Kasse, Schriftführung | Gruppe `ahv-vorstand` | – | 2FA (geplant), Zugriff Kasse/Archiv |
+| `chargen/senior` … `fuchsmajor` | Chargierte | jeweilige Gruppe | – | 2FA Pflicht, Amtsordner |
+| `ahv-vorstand` | Kasse, Schriftführung | Gruppe `ahv-vorstand` | – | 2FA Pflicht, Zugriff Kasse/Archiv |
 | `hausverein` | Hausverwaltung | Gruppe `hausverein` | – | |
 | `website-redaktion` | Pflege der Website | – | **Redakteur** | |
-| `it-admins` | Technik | Admin-Gruppe | **Administrator** | Hardware-Schlüssel (geplant) |
+| `it-admins` | Technik | Admin-Gruppe | **Administrator** | 2FA Pflicht, Hardware-Schlüssel empfohlen |
 | `gaeste` | Gäste, Partner | Gruppe `gaeste` | – | nur geteilte Ordner |
 
 Bei einem **Chargenwechsel** (jedes Semester) werden nur die Gruppen in Keycloak umgehängt. Die Amtsordner in Nextcloud („Senior“, „Fuchsmajor“ …) gehören der Gruppe, nicht der Person, und gehen damit automatisch mit.
@@ -49,7 +49,7 @@ Hinweis: Keycloak liefert die **direkten** Gruppen (`burschen`, nicht `aktivitas
 
 ## Anmeldung
 
-- **Passwort + Passkey/TOTP.** Passkeys (Face ID, Fingerabdruck, Windows Hello) sind bereits aktiv („Anmelden mit Passkey“). Für Chargen, AHV-Vorstand und IT-Admins wird ein zweiter Faktor Pflicht. Das ist noch einzurichten: bedingter Anmeldeablauf je Gruppe in Keycloak, bis dahin per *Required Action* am Konto.
+- **Passwort + Passkey/TOTP.** Passkeys (Face ID, Fingerabdruck, Windows Hello) sind bereits aktiv („Anmelden mit Passkey“). **Zweiter Faktor Pflicht für Chargen, AHV-Vorstand und IT-Admins:** Diese Gruppen erben die Rolle `zwei-faktor-pflicht`. Der Anmeldeablauf `browser-chattia` verlangt dann nach dem Passwort einen TOTP-Code (Authenticator-App). Bei der ersten Anmeldung richtet Keycloak ihn automatisch ein. Wer das Amt abgibt, verliert die Rolle mit der Gruppe. Getestet: Senior muss einrichten und wird danach jedes Mal gefragt, Fux und Bursch ohne Amt nicht.
 - **Brute-Force-Schutz:** nach 8 Fehlversuchen Wartezeit, steigend bis 15 Minuten.
 - **Sitzungen:** 2 h Leerlauf, max. 10 h im Browser; App über Offline-Token bis 30 Tage ohne Nutzung.
 - **Notfall-Login:** Nextcloud-Admin `nc-admin` bleibt lokal (`/login?direct=1`) mit langem Passwort im Tresor, falls Keycloak ausfällt.
@@ -102,11 +102,15 @@ docker compose cp keycloak/dev-users.sh keycloak:/tmp/ && docker compose exec ke
 docker compose --profile tools run --rm wpcli   # WordPress einrichten
 ```
 
-Testkonten: `senior`, `fux`, `altherr`, Passwort `Chattia-Test-2026!`. Dann https://cloud.chattia.internal:8443 (Browser-Warnung zur lokalen CA einmal bestätigen oder `caddy-local-root.crt` importieren).
+Testkonten: `senior` (Charge, IT, Redaktion: zweiter Faktor), `bursch` (Redaktion), `fux`, `altherr` (AHV-Vorstand: zweiter Faktor), Passwort `Chattia-Test-2026!`. Beispieldateien: `./dev-files.sh`. Dann https://cloud.chattia.internal:8443 (Browser-Warnung zur lokalen CA einmal bestätigen oder `caddy-local-root.crt` importieren).
 
 | Keycloak | Nextcloud nach SSO | WordPress: Redaktion | WordPress: Fux abgewiesen |
 |---|---|---|---|
 | ![](../screenshots/hosting/01-keycloak-login.png) | ![](../screenshots/hosting/02-nextcloud-nach-sso.png) | ![](../screenshots/hosting/04-wordpress-nach-sso.png) | ![](../screenshots/hosting/05-wordpress-fux-abgelehnt.png) |
+
+Zweiter Faktor für Ämter:
+
+![](../screenshots/hosting/06-zweiter-faktor-einrichten.png)
 
 Automatische Tests: `tests/sso-test.mjs` (Browser: Keycloak → Nextcloud → WordPress mit Rollen) und `tests/nova-files-test.mjs` (App-Ablauf: Login, Einmalcode, Dateien hoch/runter/löschen, Pfadausbruch, ohne Anmeldung). Beide liefen vollständig grün.
 
@@ -116,3 +120,4 @@ Automatische Tests: `tests/sso-test.mjs` (Browser: Keycloak → Nextcloud → Wo
 - **Eigene `clientScopes` im Realm-Import** ersetzen die Standard-Scopes (`profile`, `email` …). Der Gruppen-Mapper hängt deshalb direkt an den Clients.
 - **Nextcloud blockiert private Adressen** als Identity Provider. `allow_local_remote_servers` ist nur gesetzt, weil Keycloak im selben Docker-Netz läuft.
 - **WordPress-Plugin** leitet den Issuer falsch ab (ohne Port/Pfad). Er wird jetzt explizit gesetzt.
+- **Schlüsselrotation:** Nextcloud und WordPress speichern die Signaturschlüssel von Keycloak bis zu eine Stunde zwischen. Bei einer Rotation den alten Schlüssel deshalb mindestens einen Tag als *passiv* aktiv lassen (Keycloak: Realm-Einstellungen → Schlüssel). Notfalls Cache leeren: `occ config:app:delete user_oidc provider-1-jwksCacheTimestamp` und `wp transient delete --all`.

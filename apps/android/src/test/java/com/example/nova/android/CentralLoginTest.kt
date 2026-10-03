@@ -126,7 +126,7 @@ class CentralLoginTest {
         shot("20-anmeldung-chattia-konto")
 
         // Custom Tab: Keycloak-Login, danach öffnet Android die App mit nova://auth?code=…
-        callback.value = browserLogin(nova.auth.centralLoginUrl(), "senior", "Chattia-Test-2026!")
+        callback.value = browserLogin(nova.auth.centralLoginUrl(), "bursch", "Chattia-Test-2026!")
 
         waitForText("Womit kann ich helfen?")
         compose.onNodeWithContentDescription("Menü").performClick()
@@ -136,7 +136,7 @@ class CentralLoginTest {
         waitForText("Corps")
         shot("21-dateien")
         compose.onNodeWithText("Corps").performClick()
-        waitForText("Satzung-Test.txt")
+        waitForText("Satzung.md")
         shot("22-dateien-ordner")
 
         compose.onNodeWithContentDescription("Neuer Ordner").performClick()

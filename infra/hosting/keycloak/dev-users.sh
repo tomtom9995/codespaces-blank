@@ -23,3 +23,5 @@ user() { # benutzername vorname nachname gruppenpfade...
 user senior    Max     Mustermann /aktivitas/burschen /chargen/senior /it-admins /website-redaktion
 user fux       Felix   Fuchs      /aktivitas/fuechse
 user altherr   Albert  Herr       /alte-herren /ahv-vorstand
+user bursch    Bernd   Bursch     /aktivitas/burschen /website-redaktion
+echo "Hinweis: senior und altherr müssen beim ersten Login einen zweiten Faktor (TOTP) einrichten (Rolle zwei-faktor-pflicht)."

@@ -7,7 +7,7 @@ import { generateKeyPairSync } from "node:crypto";
 import assert from "node:assert/strict";
 
 const api = process.env.API_URL ?? "https://api.chattia.internal:8443";
-const user = process.env.TEST_USER ?? "senior";
+const user = process.env.TEST_USER ?? "bursch";
 const password = process.env.TEST_PASSWORD ?? "Chattia-Test-2026!";
 
 // 1) Browser-Teil: Login bei Keycloak, Rücksprung zur App abfangen
