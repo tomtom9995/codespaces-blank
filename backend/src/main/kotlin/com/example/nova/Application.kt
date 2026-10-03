@@ -141,7 +141,7 @@ class Services(
                 OnboardingScheduler(config, db, email),
                 oidc,
                 files,
-                EventsService(config, http, oidc),
+                EventsService(config, http, oidc, db),
             )
         }
     }
@@ -359,6 +359,16 @@ private fun Route.cloudRoutes(s: Services) {
     get("/v1/events") {
         val days = call.request.queryParameters["days"]?.toLongOrNull()?.coerceIn(1, 366) ?: 180
         call.respond(s.events.upcoming(call.appPrincipal().userId, days))
+    }
+    put("/v1/events/rsvp") {
+        val id = call.request.queryParameters["id"] ?: throw badRequest("invalid_event", "Termin fehlt.")
+        val req = call.receive<RsvpRequest>()
+        call.respond(s.events.rsvp(call.appPrincipal().userId, id, req.status, req.guests))
+    }
+    get("/v1/events/rsvps") {
+        val id = call.request.queryParameters["id"] ?: throw badRequest("invalid_event", "Termin fehlt.")
+        val p = call.appPrincipal()
+        call.respond(s.events.attendees(p.userId, id, s.account.me(p).groups))
     }
 
     // Dateien aus der Chattia-Cloud (Nextcloud) – im Namen des Nutzers

@@ -177,4 +177,17 @@ data class EventDto(
     val calendar: String,
     /** Nur für Mitglieder (interner Kalender), erscheint nicht auf der Website. */
     val internal: Boolean = false,
+    /** Eigene Antwort: yes | no | maybe | null (noch keine). */
+    val myRsvp: String? = null,
+    /** Zusagen inkl. Begleitung. */
+    val attending: Int = 0,
 )
+
+@Serializable
+data class RsvpRequest(val status: String, val guests: Int = 0)
+
+@Serializable
+data class RsvpEntry(val name: String, val status: String, val guests: Int)
+
+@Serializable
+data class RsvpList(val eventId: String, val attending: Int, val entries: List<RsvpEntry>)

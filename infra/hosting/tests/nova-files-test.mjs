@@ -113,6 +113,21 @@ if (user === "bursch") {
   const site = await (await fetch(process.env.WEB_URL ?? "https://www.chattia.internal:8443/")).text();
   assert.ok(site.includes("Stiftungsfest") && !site.includes("Convent"), "Website zeigt interne Termine");
   console.log("✓ Termine in der App:", titles.join(", "), "– Convent nur intern, nicht auf der Website");
+
+  // Zusage mit Begleitung, danach Absage (Test bleibt wiederholbar)
+  const fest = events.find((e) => e.title === "Stiftungsfest");
+  const q = `?id=${encodeURIComponent(fest.id)}`;
+  const base = (await (await call("PUT", "/v1/events/rsvp" + q, { status: "no" }, auth)).json()).attending;
+  let updated = await (await call("PUT", "/v1/events/rsvp" + q, { status: "yes", guests: 1 }, auth)).json();
+  assert.equal(updated.myRsvp, "yes");
+  assert.equal(updated.attending, base + 2, "Zusage + 1 Begleitung = 2 Plätze");
+  res = await call("GET", "/v1/events/rsvps" + q, null, auth);
+  assert.equal(res.status, 403, "Teilnehmerliste nur für Chargen");
+  res = await call("PUT", `/v1/events/rsvp?id=${encodeURIComponent("erfunden@chattia")}`, { status: "yes" }, auth);
+  assert.equal(res.status, 404, "Zusage zu unbekanntem Termin");
+  updated = await (await call("PUT", "/v1/events/rsvp" + q, { status: "no" }, auth)).json();
+  assert.equal(updated.myRsvp, "no");
+  console.log("✓ Zu-/Absage zum Stiftungsfest (mit Begleitung), Teilnehmerliste nur für Chargen");
 }
 
 // 6) Chattia-Assistent: Antwort aus den Cloud-Dokumenten (Beispieldaten aus dev-files.sh)

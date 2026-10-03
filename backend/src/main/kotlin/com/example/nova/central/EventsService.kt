@@ -3,6 +3,8 @@ package com.example.nova.central
 import com.example.nova.ApiException
 import com.example.nova.Config
 import com.example.nova.EventDto
+import com.example.nova.db.query
+import com.example.nova.db.update
 import io.ktor.client.HttpClient
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.header
@@ -36,11 +38,59 @@ class EventsService(
     private val config: Config,
     private val http: HttpClient,
     private val oidc: OidcService,
+    private val db: com.example.nova.db.Database,
     private val calendarPrefix: String = "Semesterprogramm",
 ) {
     val enabled: Boolean get() = config.nextcloudUrl != null && oidc.enabled
 
+    /** Termine inkl. eigener Antwort und Zahl der Zusagen. */
     suspend fun upcoming(userId: UUID, days: Long = 180): List<EventDto> {
+        val events = fromCalendars(userId, days)
+        if (events.isEmpty()) return events
+        val ids = events.map { it.id }.toTypedArray()
+        val (mine, counts) = db.tx {
+            val mine = query("SELECT event_id, status FROM event_rsvps WHERE user_id = ?", userId) { it.getString(1) to it.getString(2) }.toMap()
+            val counts = query(
+                "SELECT event_id, count(*) + coalesce(sum(guests), 0) FROM event_rsvps WHERE status = 'yes' AND event_id = ANY (?) GROUP BY event_id",
+                createArrayOf("text", ids),
+            ) { it.getString(1) to it.getInt(2) }.toMap()
+            mine to counts
+        }
+        return events.map { it.copy(myRsvp = mine[it.id], attending = counts[it.id] ?: 0) }
+    }
+
+    /** Zu- oder Absage – nur für Termine, die der Nutzer im Kalender sieht. */
+    suspend fun rsvp(userId: UUID, eventId: String, status: String, guests: Int): EventDto {
+        if (status !in setOf("yes", "no", "maybe")) throw com.example.nova.badRequest("invalid_status", "Ungültige Antwort.")
+        if (guests !in 0..10) throw com.example.nova.badRequest("invalid_guests", "Bitte höchstens 10 Begleitpersonen.")
+        fromCalendars(userId, 366).firstOrNull { it.id == eventId } ?: throw com.example.nova.notFound("Termin nicht gefunden.")
+        db.tx {
+            update(
+                """INSERT INTO event_rsvps (event_id, user_id, status, guests) VALUES (?, ?, ?, ?)
+                   ON CONFLICT (event_id, user_id) DO UPDATE SET status = EXCLUDED.status, guests = EXCLUDED.guests, updated_at = now()""",
+                eventId, userId, status, if (status == "yes") guests else 0,
+            )
+        }
+        return upcoming(userId, 366).first { it.id == eventId }
+    }
+
+    /** Teilnehmerliste – nur für Chargen (Planung von Essen, Plätzen, Getränken). */
+    suspend fun attendees(userId: UUID, eventId: String, groups: List<String>): com.example.nova.RsvpList {
+        if (groups.none { it in ORGANIZERS }) throw com.example.nova.forbidden("Die Teilnehmerliste sehen nur die Chargen.")
+        fromCalendars(userId, 366).firstOrNull { it.id == eventId } ?: throw com.example.nova.notFound("Termin nicht gefunden.")
+        val entries = db.tx {
+            query(
+                """SELECT CASE WHEN u.first_name IS NOT NULL AND o.username IS NOT NULL THEN u.first_name || ' (' || o.username || ')'
+                          ELSE coalesce(o.username, u.first_name, u.email) END AS name, r.status, r.guests
+                   FROM event_rsvps r JOIN users u ON u.id = r.user_id LEFT JOIN oidc_accounts o ON o.user_id = r.user_id
+                   WHERE r.event_id = ? ORDER BY r.status, name""",
+                eventId,
+            ) { com.example.nova.RsvpEntry(it.getString("name"), it.getString("status"), it.getInt("guests")) }
+        }
+        return com.example.nova.RsvpList(eventId, entries.filter { it.status == "yes" }.sumOf { 1 + it.guests }, entries)
+    }
+
+    private suspend fun fromCalendars(userId: UUID, days: Long): List<EventDto> {
         if (!enabled) throw ApiException(HttpStatusCode.NotImplemented, "events_disabled", "Termine sind nicht eingerichtet.")
         val (account, token) = oidc.accessToken(userId)
         val home = "${config.nextcloudUrl}/remote.php/dav/calendars/${account.username.encodeURLPathPart()}/"
@@ -73,6 +123,7 @@ class EventsService(
     companion object {
         private val UTC_STAMP = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'").withZone(ZoneOffset.UTC)
         private val BERLIN = ZoneId.of("Europe/Berlin")
+        val ORGANIZERS = setOf("senior", "consenior", "subsenior", "fuchsmajor", "ahv-vorstand")
 
         private const val CALENDARS_BODY = """<?xml version="1.0"?>
 <d:propfind xmlns:d="DAV:"><d:prop><d:displayname/><d:resourcetype/></d:prop></d:propfind>"""
