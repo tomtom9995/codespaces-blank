@@ -62,6 +62,15 @@ ids+=("$(put Kasse "Beitragsordnung.md" "# Beitragsordnung AHV (vertraulich, Bei
 
 Der jährliche AH-Beitrag beträgt 240 Euro und ist bis 31.03. fällig.")")
 
+# PDF (wie die meisten echten Vereinsunterlagen) – der Assistent liest auch PDFs
+haus=$(nc php -r '$n=$argv[1]; foreach (json_decode($argv[2], true) as $f) { if (($f["mountPoint"] ?? "") === $n) echo $f["id"]; }' Haus "$folders")
+pdf=$(mktemp --suffix=.pdf)
+python3 dev-pdf.py "$pdf" "Hausordnung des Corpshauses (Beispiel)" "1. Nachtruhe ab 23 Uhr, am Wochenende ab 1 Uhr." "2. Gaeste melden sich beim Hauswart an." "3. Die Kueche ist nach Gebrauch zu reinigen."
+docker compose cp "$pdf" "nextcloud:/var/www/html/data/__groupfolders/$haus/files/Hausordnung.pdf" >/dev/null 2>&1
+docker compose exec -T nextcloud chown www-data:www-data "/var/www/html/data/__groupfolders/$haus/files/Hausordnung.pdf"
+rm -f "$pdf"
+ids+=("$haus")
+
 for id in $(printf '%s\n' "${ids[@]}" | sort -u); do nc php occ groupfolders:scan "$id" -q; done
 # Alte private Beispielordner aus früheren Versionen dieses Skripts entfernen
 for u in bursch senior; do

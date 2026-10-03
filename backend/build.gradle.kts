@@ -47,6 +47,8 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql:11.20.3")
 
     implementation("com.nimbusds:nimbus-jose-jwt:10.10")
+    // Text aus PDFs für den Chattia-Assistenten
+    implementation("org.apache.pdfbox:pdfbox:3.0.5")
     implementation("org.commonmark:commonmark:0.30.0")
     implementation("org.eclipse.angus:angus-mail:2.0.5")
     implementation("ch.qos.logback:logback-classic:1.5.38")

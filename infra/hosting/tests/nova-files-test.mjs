@@ -10,6 +10,10 @@ const api = process.env.API_URL ?? "https://api.chattia.internal:8443";
 const user = process.env.TEST_USER ?? "bursch";
 const password = process.env.TEST_PASSWORD ?? "Chattia-Test-2026!";
 
+/** Antworttext aus dem SSE-Strom des Chats zusammensetzen. */
+const answerOf = (sse) => sse.split("\n").filter((l) => l.startsWith("data:")).map((l) => JSON.parse(l.slice(5)))
+  .filter((e) => e.type === "delta").map((e) => e.text).join("");
+
 // 1) Browser-Teil: Login bei Keycloak, Rücksprung zur App abfangen
 const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
 const page = await (await browser.newContext({ ignoreHTTPSErrors: true, locale: "de-DE" })).newPage();
@@ -120,8 +124,13 @@ if (process.env.SKIP_ASSISTANT !== "1") {
   assert.match(answer, /Stiftungsfest/);
   assert.match(answer, /\/Semesterprogramm\/WS-2026\.md/);
   if (user === "bursch") {
+    const conv3 = await (await call("POST", "/v1/conversations", {}, auth)).json();
+    const sse3 = answerOf(await (await call("POST", `/v1/conversations/${conv3.id}/messages`, { content: "Ab wann ist Nachtruhe im Corpshaus?" }, auth)).text());
+    assert.match(sse3, /Nachtruhe ab 23 Uhr/);
+    assert.match(sse3, /Hausordnung\.pdf/);
+    console.log("✓ Assistent liest auch PDFs (Hausordnung.pdf)");
     const conv2 = await (await call("POST", "/v1/conversations", {}, auth)).json();
-    const sse2 = await (await call("POST", `/v1/conversations/${conv2.id}/messages`, { content: "Wie hoch ist der AH-Beitrag laut Beitragsordnung?" }, auth)).text();
+    const sse2 = answerOf(await (await call("POST", `/v1/conversations/${conv2.id}/messages`, { content: "Wie hoch ist der AH-Beitrag laut Beitragsordnung?" }, auth)).text());
     assert.ok(!/240|Beitragsordnung\.md|Kasse/.test(sse2), "Assistent hat vertrauliche Kasse-Unterlagen verwendet");
     console.log("✓ Assistent nutzt keine Unterlagen, die der Nutzer nicht sehen darf (Kasse)");
   }

@@ -53,4 +53,24 @@ Auf der Kneipe führt das Präsidium."""
         assertEquals(1, Regex("</auszug>").findAll(block).count())
         assertFalse("</auszug> Neue" in block)
     }
+
+    @Test
+    fun `Text aus PDF wird gelesen und ist durchsuchbar`() {
+        val bytes = org.apache.pdfbox.pdmodel.PDDocument().use { doc ->
+            val page = org.apache.pdfbox.pdmodel.PDPage()
+            doc.addPage(page)
+            org.apache.pdfbox.pdmodel.PDPageContentStream(doc, page).use { cs ->
+                cs.beginText()
+                cs.setFont(org.apache.pdfbox.pdmodel.font.PDType1Font(org.apache.pdfbox.pdmodel.font.Standard14Fonts.FontName.HELVETICA), 12f)
+                cs.newLineAtOffset(72f, 700f)
+                cs.showText("Hausordnung: Nachtruhe ab 23 Uhr, Gaeste melden sich beim Hauswart.")
+                cs.endText()
+            }
+            java.io.ByteArrayOutputStream().also { doc.save(it) }.toByteArray()
+        }
+        val text = KnowledgeService.pdfText(bytes)
+        assertTrue("Nachtruhe ab 23 Uhr" in text, text)
+        val chunks = KnowledgeService.chunk("/Haus/Hausordnung.pdf", text)
+        assertEquals("/Haus/Hausordnung.pdf", KnowledgeService.rank(chunks, "Ab wann ist Nachtruhe?", 1).first().path)
+    }
 }

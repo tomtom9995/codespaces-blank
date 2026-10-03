@@ -131,10 +131,12 @@ class FilesService(
 
     /** Textinhalt einer Datei (für den Assistenten), höchstens [maxBytes]. */
     suspend fun readText(userId: java.util.UUID, path: String, maxBytes: Int = 200_000): String {
-        val response = dav(userId, HttpMethod.Get, path)
-        val bytes = response.body<ByteArray>()
+        val bytes = readBytes(userId, path)
         return bytes.copyOf(minOf(bytes.size, maxBytes)).decodeToString()
     }
+
+    suspend fun readBytes(userId: java.util.UUID, path: String): ByteArray =
+        dav(userId, HttpMethod.Get, path).body<ByteArray>()
 
     suspend fun upload(p: Principal, path: String, body: ByteReadChannel, type: ContentType?, length: Long?) {
         if (normalize(path).isEmpty()) throw badRequest("invalid_path", "Bitte einen Dateinamen angeben.")

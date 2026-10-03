@@ -3,6 +3,8 @@ package com.example.nova.central
 import com.example.nova.ApiException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.apache.pdfbox.Loader
+import org.apache.pdfbox.text.PDFTextStripper
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.util.UUID
@@ -16,7 +18,7 @@ data class Snippet(val path: String, val heading: String?, val text: String)
  *
  * - Gelesen wird immer mit dem Token des Nutzers → nur Dokumente, die er auch in der Cloud sehen darf
  *   (ein Fux sieht keine Vorstandsunterlagen, auch nicht über den Assistenten).
- * - Berücksichtigt werden Textdokumente (.md, .txt) in den freigegebenen Ordnern (KNOWLEDGE_FOLDERS).
+ * - Berücksichtigt werden Textdokumente (.md, .txt) und PDFs mit Textebene in den freigegebenen Ordnern (KNOWLEDGE_FOLDERS).
  * - Der Index liegt nur im Arbeitsspeicher, pro Nutzer, und wird nach wenigen Minuten neu aufgebaut.
  * - Einfaches Stichwort-Ranking (TF-IDF); für große Bestände später durch Vektorsuche ersetzbar.
  */
@@ -61,6 +63,12 @@ class KnowledgeService(
                         budget--
                         chunks += chunk(entry.path, files.readText(userId, entry.path))
                     }
+                    entry.name.lowercase().endsWith(".pdf") && (entry.size ?: 0) <= MAX_PDF_BYTES -> {
+                        budget--
+                        val text = runCatching { pdfText(files.readBytes(userId, entry.path)) }
+                            .onFailure { log.info("PDF nicht lesbar: {} ({})", entry.path, it.message) }.getOrNull()
+                        if (!text.isNullOrBlank()) chunks += chunk(entry.path, text)
+                    }
                 }
             }
         }
@@ -78,6 +86,7 @@ class KnowledgeService(
         private const val MAX_FILES = 200
         private const val MAX_DEPTH = 5
         private const val MAX_FILE_BYTES = 200_000L
+        private const val MAX_PDF_BYTES = 15_000_000L
         private const val CHUNK_CHARS = 900
         private val TEXT_TYPES = setOf("md", "txt", "markdown")
 
@@ -88,6 +97,12 @@ class KnowledgeService(
             "du", "wir", "ihr", "sie", "man", "mir", "mich", "dir", "dich", "uns", "kann", "können", "muss", "müssen", "soll",
             "gibt", "hat", "haben", "nicht", "kein", "keine", "auch", "noch", "schon", "nur", "sehr", "mal", "bitte", "the", "and",
         )
+
+        /** Text aus einem PDF (Textebene; gescannte PDFs ohne Texterkennung liefern nichts). */
+        fun pdfText(bytes: ByteArray): String = Loader.loadPDF(bytes).use { doc ->
+            // Absätze erhalten, damit die Zerlegung an Leerzeilen greift
+            PDFTextStripper().apply { paragraphEnd = "\n\n" }.getText(doc)
+        }
 
         fun terms(text: String): List<String> =
             Regex("[\\p{L}\\p{N}]+").findAll(text.lowercase()).map { it.value }
